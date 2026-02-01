@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   Card,
   CardBody,
@@ -22,26 +23,15 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-/* ---temp data--- */
-const portfolioData = [
-  { date: "January", value: 100000 },
-  { date: "February", value: 110000 },
-  { date: "March", value: 105000 },
-  { date: "April", value: 120000 },
-];
+import {
+  getPortfolioAssets,
+  getBalance,
+  buyAsset,
+  sellAsset,
+  sellAllAsset,
+} from "../services/api";
 
-const allocationData = [
-  { name: "Stocks", value: 60 },
-  { name: "Bonds", value: 25 },
-  { name: "Cash", value: 15 },
-];
-
-const assets = [
-  { symbol: "AAPL", quantity: 10, buyPrice: 150, currentPrice: 175 },
-  { symbol: "GOOG", quantity: 5, buyPrice: 2500, currentPrice: 2400 },
-];
-
-const COLORS = ["#6366f1", "#22c55e", "#f59e0b"];
+const COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#14b8a6"];
 
 /* ---ui helper--- */
 function CardTitle({ children, align = "center" }) {
@@ -56,28 +46,115 @@ function CardTitle({ children, align = "center" }) {
   );
 }
 
-function AssetLegend({ data, colors }) {
+function LoadingSpinner() {
   return (
-    <div className="flex flex-col gap-3 items-center mt-4">
-      {data.map((item, index) => (
-        <div
-          key={item.name}
-          className="flex items-center gap-3 text-sm text-slate-700"
-        >
-          <div
-            className="h-3 w-3 rounded-md"
-            style={{ backgroundColor: colors[index] }}
-          />
-          <span className="font-semibold">{item.name}</span>
-          <span className="text-slate-500">{item.value}%</span>
-        </div>
-      ))}
+    <div className="flex justify-center items-center h-20">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+    </div>
+  );
+}
+
+function ErrorMessage({ message, onRetry }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-20 text-red-600">
+      <p className="text-sm">{message}</p>
+      <Button size="sm" color="primary" className="mt-2" onClick={onRetry}>
+        Retry
+      </Button>
     </div>
   );
 }
 
 /* ---MAIN COMPO--- */
 export default function Dashboard() {
+  const [portfolioAssets, setPortfolioAssets] = useState([]);
+  const [balance, setBalance] = useState({ amount: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch data from backend
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [assetsData, balanceData] = await Promise.all([
+        getPortfolioAssets(),
+        getBalance(),
+      ]);
+
+      setPortfolioAssets(assetsData);
+      setBalance(balanceData);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Failed to load data from server");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Calculate portfolio value
+  const portfolioValue = portfolioAssets.reduce((total, asset) => {
+    return total + asset.currentPrice * asset.quantity;
+  }, 0);
+
+  // Generate allocation data from actual portfolio
+  const allocationData = portfolioAssets.map((asset) => ({
+    name: asset.symbol,
+    value: portfolioValue > 0
+      ? Math.round((asset.currentPrice * asset.quantity / portfolioValue) * 100)
+      : 0,
+  }));
+
+  // Generate portfolio growth data (mock for now, can be replaced with history API)
+  const portfolioData = [
+    { date: "January", value: portfolioValue * 0.85 },
+    { date: "February", value: portfolioValue * 0.92 },
+    { date: "March", value: portfolioValue * 0.88 },
+    { date: "April", value: portfolioValue },
+  ];
+
+  // Handle buy/sell actions
+  const handleBuy = async (symbol) => {
+    try {
+      const quantity = prompt(`Enter quantity to buy ${symbol}:`);
+      if (quantity && Number(quantity) > 0) {
+        await buyAsset(symbol, parseInt(quantity));
+        fetchData(); // Refresh data
+      }
+    } catch (err) {
+      alert("Failed to buy asset");
+    }
+  };
+
+  const handleSell = async (symbol, quantity) => {
+    try {
+      if (quantity === 1) {
+        await sellAllAsset(symbol);
+      } else {
+        const sellQty = prompt(`Enter quantity to sell (max ${quantity}):`);
+        if (sellQty && Number(sellQty) > 0 && Number(sellQty) <= quantity) {
+          await sellAsset(symbol, parseInt(sellQty));
+        }
+      }
+      fetchData(); // Refresh data
+    } catch (err) {
+      alert("Failed to sell asset");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-indigo-100 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-indigo-100">
       {/* ---top bar--- */}
@@ -97,38 +174,44 @@ export default function Dashboard() {
           </p>
         </div>
 
+        {/* Error display */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
+
         {/* --- summary cards--- */}
         <div className="grid grid-cols-3 gap-7">
-          {[
-            {
-              title: "Total Portfolio Value",
-              value: "₹12,00,000",
-              bg: "bg-indigo-50",
-            },
-            {
-              title: "Portfolio Health",
-              value: "82 / 100",
-              bg: "bg-cyan-50",
-            },
-            {
-              title: "Available Balance",
-              value: "₹1,50,000",
-              bg: "bg-emerald-50",
-            },
-          ].map((item) => (
-            <Card
-              key={item.title}
-              className={`rounded-2xl shadow-lg ${item.bg}`}
-            >
-              <CardBody className="p-7">
-                <CardTitle>{item.title}</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
-                <p className="mt-6 text-3xl font-extrabold text-center">
-                  {item.value}
-                </p>
-              </CardBody>
-            </Card>
-          ))}
+          <Card className="rounded-2xl shadow-lg bg-indigo-50">
+            <CardBody className="p-7">
+              <CardTitle>Total Portfolio Value</CardTitle>
+              <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
+              <p className="mt-6 text-3xl font-extrabold text-center">
+                ₹{portfolioValue.toLocaleString()}
+              </p>
+            </CardBody>
+          </Card>
+
+          <Card className="rounded-2xl shadow-lg bg-cyan-50">
+            <CardBody className="p-7">
+              <CardTitle>Portfolio Health</CardTitle>
+              <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
+              <p className="mt-6 text-3xl font-extrabold text-center">
+                {portfolioAssets.length > 0 ? "85" : "0"} / 100
+              </p>
+            </CardBody>
+          </Card>
+
+          <Card className="rounded-2xl shadow-lg bg-emerald-50">
+            <CardBody className="p-7">
+              <CardTitle>Available Balance</CardTitle>
+              <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
+              <p className="mt-6 text-3xl font-extrabold text-center">
+                ₹{balance.amount.toLocaleString()}
+              </p>
+            </CardBody>
+          </Card>
         </div>
 
         {/* ---charts--- */}
@@ -166,9 +249,10 @@ export default function Dashboard() {
                       data={allocationData}
                       dataKey="value"
                       outerRadius={95}
+                      nameKey="name"
                     >
                       {allocationData.map((_, index) => (
-                        <Cell key={index} fill={COLORS[index]} />
+                        <Cell key={index} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -176,7 +260,21 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               </div>
 
-              <AssetLegend data={allocationData} colors={COLORS} />
+              <div className="flex flex-col gap-3 items-center mt-4">
+                {allocationData.map((item, index) => (
+                  <div
+                    key={item.name}
+                    className="flex items-center gap-3 text-sm text-slate-700"
+                  >
+                    <div
+                      className="h-3 w-3 rounded-md"
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <span className="font-semibold">{item.name}</span>
+                    <span className="text-slate-500">{item.value}%</span>
+                  </div>
+                ))}
+              </div>
             </CardBody>
           </Card>
         </div>
@@ -189,54 +287,85 @@ export default function Dashboard() {
               <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
             </div>
 
-            <div className="flex justify-end mb-5">
-              <Button color="primary">Add Asset</Button>
+            <div className="flex justify-end mb-5 gap-2">
+              <Button color="primary" onClick={() => fetchData()}>
+                Refresh
+              </Button>
+              <Button color="secondary" onClick={() => {
+                const symbol = prompt("Enter symbol to buy:");
+                if (symbol) handleBuy(symbol);
+              }}>
+                Add Asset
+              </Button>
             </div>
 
-            <Table>
-              <TableHeader>
-                <TableColumn>Ticker</TableColumn>
-                <TableColumn>Quantity</TableColumn>
-                <TableColumn>Buy Price</TableColumn>
-                <TableColumn>Current Price</TableColumn>
-                <TableColumn>P&amp;L</TableColumn>
-                <TableColumn />
-              </TableHeader>
+            {portfolioAssets.length === 0 ? (
+              <div className="text-center py-8 text-slate-500">
+                No assets in your portfolio. Add some assets to get started!
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableColumn>Ticker</TableColumn>
+                  <TableColumn>Quantity</TableColumn>
+                  <TableColumn>Buy Price</TableColumn>
+                  <TableColumn>Current Price</TableColumn>
+                  <TableColumn>P&L</TableColumn>
+                  <TableColumn>Actions</TableColumn>
+                </TableHeader>
 
-              <TableBody>
-                {assets.map((asset) => {
-                  const pnl =
-                    (asset.currentPrice - asset.buyPrice) *
-                    asset.quantity;
+                <TableBody>
+                  {portfolioAssets.map((asset) => {
+                    const pnl =
+                      (asset.currentPrice - asset.buyPrice) * asset.quantity;
+                    const pnlPercent = asset.buyPrice > 0
+                      ? ((asset.currentPrice - asset.buyPrice) / asset.buyPrice * 100).toFixed(2)
+                      : 0;
 
-                  return (
-                    <TableRow key={asset.symbol}>
-                      <TableCell>{asset.symbol}</TableCell>
-                      <TableCell>{asset.quantity}</TableCell>
-                      <TableCell>₹{asset.buyPrice}</TableCell>
-                      <TableCell>₹{asset.currentPrice}</TableCell>
-                      <TableCell
-                        className={`font-semibold ${
-                          pnl >= 0
-                            ? "text-emerald-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        ₹{pnl}
-                      </TableCell>
-                      <TableCell>
-                        <button className="px-3 py-1 text-xs font-bold text-red-600 bg-red-100/60 rounded-md">
-                          Sell
-                        </button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                    return (
+                      <TableRow key={asset.symbol}>
+                        <TableCell className="font-semibold">{asset.symbol}</TableCell>
+                        <TableCell>{asset.quantity}</TableCell>
+                        <TableCell>₹{asset.buyPrice.toLocaleString()}</TableCell>
+                        <TableCell>₹{asset.currentPrice.toLocaleString()}</TableCell>
+                        <TableCell>
+                          <div className={`font-semibold ${pnl >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                            {pnl >= 0 ? "+" : ""}₹{pnl.toLocaleString()}
+                          </div>
+                          <div className={`text-xs ${pnl >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                            {pnlPercent}%
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              color="success"
+                              variant="flat"
+                              onClick={() => handleBuy(asset.symbol)}
+                            >
+                              Buy
+                            </Button>
+                            <Button
+                              size="sm"
+                              color="danger"
+                              variant="flat"
+                              onClick={() => handleSell(asset.symbol, asset.quantity)}
+                            >
+                              Sell
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
           </CardBody>
         </Card>
       </div>
     </div>
   );
 }
+
