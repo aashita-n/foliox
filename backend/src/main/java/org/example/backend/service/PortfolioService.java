@@ -1,54 +1,15 @@
-//package org.example.backend.service;
-//
-//
-//import org.example.backend.Entity.PortfolioAssetEntity;
-//import org.example.backend.Entity.PortfolioAssetEntity;
-//import org.example.backend.Repository.PortfolioAssetRepository;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.stereotype.Service;
-//
-//import java.util.List;
-//
-//@Service
-//public class PortfolioAssetService {
-//
-//    @Autowired
-//    private PortfolioAssetRepository portfolioAssetRepository;
-//
-//    // Add a new asset to portfolio
-//    public PortfolioAssetEntity addAsset(PortfolioAssetEntity asset) {
-//        return portfolioAssetRepository.save(asset);
-//    }
-//
-//    // Get all assets in portfolio
-//    public List<PortfolioAssetEntity> getPortfolio() {
-//        return portfolioAssetRepository.findAll();
-//    }
-//
-//    // Update current price and profit/loss for an asset
-//    public PortfolioAssetEntity updateAssetPrice(String symbol, double currentPrice) {
-//        PortfolioAssetEntity asset = portfolioAssetRepository.findBySymbol(symbol)
-//                .orElseThrow(() -> new RuntimeException("Asset not found: " + symbol));
-//
-//        asset.setCurrentPrice(currentPrice);
-//        // Update profit/loss: (currentPrice - buyPrice) * qty
-//        asset.setProfitLoss((currentPrice - asset.getBuyPrice()) * asset.getQuantity());
-//
-//        return portfolioAssetRepository.save(asset);
-//    }
-//}
-//
-
-
 package org.example.backend.service;
 
+import jakarta.transaction.Transactional;
 import org.example.backend.DTO.PortfolioAssetDTO;
 import org.example.backend.Entity.PortfolioAssetEntity;
 import org.example.backend.Entity.AssetCatalogueEntity;
 import org.example.backend.Repository.PortfolioAssetRepository;
 import org.example.backend.Repository.AssetCatalogueRepository;
+import org.example.backend.service.BalanceService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,11 +18,14 @@ public class PortfolioService {
 
     private final PortfolioAssetRepository portfolioRepo;
     private final AssetCatalogueRepository assetCatalogueRepo;
+    private final BalanceService balanceService;
 
     public PortfolioService(PortfolioAssetRepository portfolioRepo,
-                            AssetCatalogueRepository assetCatalogueRepo) {
+                            AssetCatalogueRepository assetCatalogueRepo,
+                            BalanceService balanceService) {
         this.portfolioRepo = portfolioRepo;
         this.assetCatalogueRepo = assetCatalogueRepo;
+        this.balanceService = balanceService;
     }
 
     public List<PortfolioAssetDTO> getPortfolio() {
@@ -107,5 +71,57 @@ public class PortfolioService {
 
         }).collect(Collectors.toList());
     }
+
+    @Transactional
+    public void buyAsset(String symbol, int quantity) {
+
+        // 1. Get asset from catalogue
+        AssetCatalogueEntity catalogue = assetCatalogueRepo
+                .findBySymbol(symbol)
+                .orElseThrow(() ->
+                        new RuntimeException("Asset not found in catalogue: " + symbol)
+                );
+
+        double buyPrice = catalogue.getPrice();
+        double totalCost = buyPrice * quantity;
+
+        // 2. Subtract balance (will auto-check insufficient funds)
+        balanceService.subtract(totalCost);
+
+        // 3. Check if asset already exists in portfolio
+        PortfolioAssetEntity asset = portfolioRepo
+                .findBySymbol(symbol)
+                .orElse(null);
+
+        if (asset == null) {
+            // 4A. New asset
+            PortfolioAssetEntity newAsset = new PortfolioAssetEntity();
+            newAsset.setSymbol(symbol);
+            newAsset.setName(catalogue.getName());
+            newAsset.setType(catalogue.getType());
+            newAsset.setBuyPrice(buyPrice);
+            newAsset.setQuantity(quantity);
+            newAsset.setBuyTimestamp(LocalDateTime.now());
+
+            portfolioRepo.save(newAsset);
+
+        } else {
+            // 4B. Existing asset → update avg buy price
+            int oldQty = asset.getQuantity();
+            double oldBuyPrice = asset.getBuyPrice();
+
+            int newQty = oldQty + quantity;
+
+            double newAvgBuyPrice =
+                    ((oldBuyPrice * oldQty) + (buyPrice * quantity)) / newQty;
+
+            asset.setQuantity(newQty);
+            asset.setBuyPrice(newAvgBuyPrice);
+            asset.setBuyTimestamp(LocalDateTime.now());
+
+            portfolioRepo.save(asset);
+        }
+    }
+
 }
 
