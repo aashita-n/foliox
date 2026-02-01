@@ -31,6 +31,19 @@ public class PortfolioController {
         return "Asset bought successfully";
     }
 
+    @PutMapping("/{symbol}/sell/{quantity}")
+    public String sellAsset(@PathVariable String symbol, @PathVariable int quantity) {
+        portfolioService.sellAsset(symbol, quantity);
+        return "Asset sold successfully";
+    }
+
+    @DeleteMapping("/{symbol}")
+    public String sellAll(@PathVariable String symbol) {
+        portfolioService.sellAllAsset(symbol);
+        return "All quantity sold successfully";
+    }
+
+
 
 }
 

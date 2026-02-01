@@ -123,5 +123,44 @@ public class PortfolioService {
         }
     }
 
+    @Transactional
+    public void sellAsset(String symbol, int quantity) {
+        PortfolioAssetEntity asset = portfolioRepo.findBySymbol(symbol)
+                .orElseThrow(() -> new RuntimeException("Asset not in portfolio: " + symbol));
+
+        if (asset.getQuantity() < quantity) {
+            throw new RuntimeException("Not enough quantity to sell");
+        }
+
+        AssetCatalogueEntity catalogue = assetCatalogueRepo.findBySymbol(symbol)
+                .orElseThrow(() -> new RuntimeException("Asset not found in catalogue: " + symbol));
+
+        double proceeds = catalogue.getPrice() * quantity;
+        balanceService.add(proceeds);
+
+        int remainingQty = asset.getQuantity() - quantity;
+
+        if (remainingQty == 0) {
+            portfolioRepo.delete(asset);
+        } else {
+            asset.setQuantity(remainingQty);
+            portfolioRepo.save(asset);
+        }
+    }
+
+    @Transactional
+    public void sellAllAsset(String symbol) {
+        PortfolioAssetEntity asset = portfolioRepo.findBySymbol(symbol)
+                .orElseThrow(() -> new RuntimeException("Asset not in portfolio: " + symbol));
+
+        AssetCatalogueEntity catalogue = assetCatalogueRepo.findBySymbol(symbol)
+                .orElseThrow(() -> new RuntimeException("Asset not found in catalogue: " + symbol));
+
+        double proceeds = catalogue.getPrice() * asset.getQuantity();
+        balanceService.add(proceeds);
+
+        portfolioRepo.delete(asset);
+    }
+
 }
 
