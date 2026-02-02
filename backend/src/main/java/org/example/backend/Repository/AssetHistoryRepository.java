@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface AssetHistoryRepository extends JpaRepository<AssetHistoryEntity, Long> {
     List<AssetHistoryEntity> findBySymbolOrderByDateAsc(String symbol);
+
 }
 
 
