@@ -73,5 +73,13 @@ public class AssetCatalogueService {
 
         return assetCatalogueRepo.save(entity);
     }
+
+    public List<AssetCatalogueEntity> searchAssets(String query) {
+        return assetCatalogueRepo
+                .findByNameStartingWithIgnoreCaseOrSymbolStartingWithIgnoreCase(
+                        query,
+                        query
+                );
+    }
 }
 
