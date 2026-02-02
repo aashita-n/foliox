@@ -30,6 +30,7 @@ import {
   sellAsset,
   sellAllAsset,
 } from "../services/api";
+import TradePopup from "./TradePopup";
 
 const COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#14b8a6"];
 
@@ -71,6 +72,10 @@ export default function Dashboard() {
   const [balance, setBalance] = useState({ amount: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Trade popup state
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupData, setPopupData] = useState({ tradeType: "buy", symbol: "", maxQuantity: null });
 
   // Fetch data from backend
   const fetchData = async () => {
@@ -118,32 +123,37 @@ export default function Dashboard() {
     { date: "April", value: portfolioValue },
   ];
 
-  // Handle buy/sell actions
-  const handleBuy = async (symbol) => {
-    try {
-      const quantity = prompt(`Enter quantity to buy ${symbol}:`);
-      if (quantity && Number(quantity) > 0) {
-        await buyAsset(symbol, parseInt(quantity));
-        fetchData(); // Refresh data
-      }
-    } catch (err) {
-      alert("Failed to buy asset");
+  // Open trade popup
+  const openTradePopup = (tradeType, symbol, maxQuantity = null) => {
+    setPopupData({ tradeType, symbol, maxQuantity });
+    setShowPopup(true);
+  };
+
+  // Handle buy action - opens popup
+  const handleBuy = (symbol) => {
+    openTradePopup("buy", symbol);
+  };
+
+  // Handle sell action - opens popup or sells all if quantity is 1
+  const handleSell = (symbol, quantity) => {
+    if (quantity === 1) {
+      sellAllAsset(symbol).then(() => fetchData()).catch(() => alert("Failed to sell asset"));
+    } else {
+      openTradePopup("sell", symbol, quantity);
     }
   };
 
-  const handleSell = async (symbol, quantity) => {
+  // Handle popup confirmation
+  const handlePopupConfirm = async (symbol, quantity) => {
     try {
-      if (quantity === 1) {
-        await sellAllAsset(symbol);
+      if (popupData.tradeType === "buy") {
+        await buyAsset(symbol, quantity);
       } else {
-        const sellQty = prompt(`Enter quantity to sell (max ${quantity}):`);
-        if (sellQty && Number(sellQty) > 0 && Number(sellQty) <= quantity) {
-          await sellAsset(symbol, parseInt(sellQty));
-        }
+        await sellAsset(symbol, quantity);
       }
-      fetchData(); // Refresh data
+      fetchData();
     } catch (err) {
-      alert("Failed to sell asset");
+      alert(`Failed to ${popupData.tradeType} asset`);
     }
   };
 
@@ -291,10 +301,7 @@ export default function Dashboard() {
               <Button color="primary" onClick={() => fetchData()}>
                 Refresh
               </Button>
-              <Button color="secondary" onClick={() => {
-                const symbol = prompt("Enter symbol to buy:");
-                if (symbol) handleBuy(symbol);
-              }}>
+              <Button color="secondary" onClick={() => openTradePopup("buy", "")}>
                 Add Asset
               </Button>
             </div>
@@ -368,6 +375,15 @@ export default function Dashboard() {
           </CardBody>
         </Card>
       </div>
+
+      {/* Trade Popup Modal */}
+      <TradePopup
+        isOpen={showPopup}
+        tradeType={popupData.tradeType}
+        initialSymbol={popupData.symbol}
+        onClose={() => setShowPopup(false)}
+        onConfirm={handlePopupConfirm}
+      />
     </div>
   );
 }
