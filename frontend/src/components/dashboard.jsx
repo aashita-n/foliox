@@ -301,7 +301,7 @@ export default function Dashboard() {
 
             {portfolioAssets.length === 0 ? (
               <div className="text-center py-8 text-slate-500">
-                No assets in your portfolio. Add some assets to get started!
+                No assets in your portfolio yet. Add some assets to get started.
               </div>
             ) : (
               <Table>
