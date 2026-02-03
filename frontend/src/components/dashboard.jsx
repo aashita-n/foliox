@@ -38,7 +38,7 @@ const COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#14b8a6"];
 function CardTitle({ children, align = "center" }) {
   return (
       <p
-          className={`text-xs font-semibold tracking-widest uppercase text-slate-600 ${
+          className={`text-xs font-semibold tracking-widest uppercase text-zinc-600 ${
               align === "left" ? "text-left" : "text-center"
           }`}
       >
@@ -50,7 +50,7 @@ function CardTitle({ children, align = "center" }) {
 function LoadingSpinner() {
   return (
       <div className="flex justify-center items-center h-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600"></div>
       </div>
   );
 }
@@ -162,45 +162,45 @@ export default function Dashboard() {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-gradient-to-b from-slate-50 to-indigo-100 flex items-center justify-center"><LoadingSpinner /></div>;
+  if (loading) return <div className="min-h-screen bg-gradient-to-b from-white to-cyan-100 flex items-center justify-center"><LoadingSpinner /></div>;
 
   return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-indigo-100">
+      <div className="min-h-screen bg-gradient-to-b from-white to-cyan-100">
         {/* Top Bar */}
-        <div className="sticky top-0 z-10 h-16 bg-white shadow-md flex items-center px-10">
-          <h1 className="text-xl font-extrabold tracking-wide text-indigo-600">FolioX</h1>
+        <div className="sticky top-0 z-10 h-16 !bg-white shadow-md flex items-center px-10">
+          <h1 className="text-xl font-extrabold tracking-wide text-cyan-600">FolioX</h1>
         </div>
 
         <div className="p-10 flex flex-col gap-10">
           <div>
-            <h2 className="text-5xl font-black text-indigo-600">Hi Sumeet</h2>
-            <p className="text-lg text-slate-600 mt-2 italic">Welcome back to your dashboard.</p>
+            <h2 className="text-5xl font-black text-cyan-600">Hi Sumeet</h2>
+            <p className="text-lg text-zinc-600 mt-2 italic">Welcome back to your dashboard.</p>
           </div>
 
           {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>}
 
           {/* Summary Cards */}
           <div className="grid grid-cols-3 gap-7">
-            <Card className="rounded-2xl shadow-lg bg-indigo-50">
+            <Card className="rounded-2xl shadow-lg bg-amber-50">
               <CardBody className="p-7">
                 <CardTitle>Total Portfolio Value</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
+                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
                 <p className="mt-6 text-3xl font-extrabold text-center">₹{portfolioValue.toLocaleString()}</p>
               </CardBody>
             </Card>
 
-            <Card className="rounded-2xl shadow-lg bg-cyan-50">
+            <Card className="rounded-2xl shadow-lg bg-yellow-100">
               <CardBody className="p-7">
                 <CardTitle>Diversification Score</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
+                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
                 <p className="mt-6 text-3xl font-extrabold text-center">{diversificationScore} / 100</p>
               </CardBody>
             </Card>
 
-            <Card className="rounded-2xl shadow-lg bg-emerald-50">
+            <Card className="rounded-2xl shadow-lg bg-lime-100">
               <CardBody className="p-7">
                 <CardTitle>Available Balance</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
+                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
                 <p className="mt-6 text-3xl font-extrabold text-center">₹{balance.amount.toLocaleString()}</p>
               </CardBody>
             </Card>
@@ -208,10 +208,10 @@ export default function Dashboard() {
 
           {/* Charts */}
           <div className="grid grid-cols-3 gap-7">
-            <Card className="col-span-2 rounded-2xl shadow-lg bg-slate-50">
+            <Card className="col-span-2 rounded-2xl shadow-lg !bg-white">
               <CardBody className="p-7">
                 <CardTitle align="left">Portfolio Growth</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2" />
+                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2" />
                 <div className="mt-6 h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={portfolioData}>
@@ -228,10 +228,10 @@ export default function Dashboard() {
             {/* Pie Charts */}
             <div className="flex flex-col gap-7">
               {/* By Symbol */}
-              <Card className="rounded-2xl shadow-lg bg-slate-50">
+              <Card className="rounded-2xl shadow-lg !bg-white">
                 <CardBody className="p-7">
                   <CardTitle>Asset Allocation</CardTitle>
-                  <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
+                  <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
                   <div className="mt-6 h-[220px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -244,10 +244,10 @@ export default function Dashboard() {
                   </div>
                   <div className="flex flex-col gap-3 items-center mt-4">
                     {allocationData.map((item, index) => (
-                        <div key={item.name} className="flex items-center gap-3 text-sm text-slate-700">
+                        <div key={item.name} className="flex items-center gap-3 text-sm text-zinc-700">
                           <div className="h-3 w-3 rounded-md" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                           <span className="font-semibold">{item.name}</span>
-                          <span className="text-slate-500">{item.value}%</span>
+                          <span className="text-white0">{item.value}%</span>
                         </div>
                     ))}
                   </div>
@@ -255,10 +255,10 @@ export default function Dashboard() {
               </Card>
 
               {/* By Type */}
-              <Card className="rounded-2xl shadow-lg bg-slate-50">
+              <Card className="rounded-2xl shadow-lg !bg-white">
                 <CardBody className="p-7">
                   <CardTitle>Allocation by Asset Type</CardTitle>
-                  <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
+                  <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
                   <div className="mt-6 h-[220px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -271,10 +271,10 @@ export default function Dashboard() {
                   </div>
                   <div className="flex flex-col gap-3 items-center mt-4">
                     {typeAllocationData.map((item, index) => (
-                        <div key={item.name} className="flex items-center gap-3 text-sm text-slate-700">
+                        <div key={item.name} className="flex items-center gap-3 text-sm text-zinc-700">
                           <div className="h-3 w-3 rounded-md" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                           <span className="font-semibold">{item.name}</span>
-                          <span className="text-slate-500">{item.value}%</span>
+                          <span className="text-white0">{item.value}%</span>
                         </div>
                     ))}
                   </div>
@@ -284,11 +284,11 @@ export default function Dashboard() {
           </div>
 
           {/* Holdings Table */}
-          <Card className="rounded-2xl shadow-lg bg-slate-50">
+          <Card className="rounded-2xl shadow-lg !bg-white">
             <CardBody className="p-7">
               <div className="mb-5 text-center">
                 <CardTitle>Holdings</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
+                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
               </div>
 
               <div className="flex justify-end mb-5 gap-2">
@@ -297,7 +297,7 @@ export default function Dashboard() {
               </div>
 
               {portfolioAssets.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">No assets in your portfolio yet. Add some assets to get started.</div>
+                  <div className="text-center py-8 text-white0">No assets in your portfolio yet. Add some assets to get started.</div>
               ) : (
                   <Table>
                     <TableHeader>
