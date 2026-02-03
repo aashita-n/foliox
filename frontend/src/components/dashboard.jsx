@@ -243,7 +243,7 @@ export default function Dashboard() {
           {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>}
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-3 gap-7">
+          <div className="grid grid-cols-4 gap-7">
             <Card className="rounded-2xl shadow-lg bg-amber-50">
               <CardBody className="p-7">
                 <CardTitle>Total Portfolio Value</CardTitle>
@@ -261,6 +261,14 @@ export default function Dashboard() {
             </Card>
 
             <Card className="rounded-2xl shadow-lg bg-lime-100">
+              <CardBody className="p-7">
+                <CardTitle>Immune Score</CardTitle>
+                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
+                <p className="mt-6 text-3xl font-extrabold text-center">85 / 100</p>
+              </CardBody>
+            </Card>
+
+            <Card className="rounded-2xl shadow-lg bg-green-100">
               <CardBody className="p-7">
                 <CardTitle>Available Balance</CardTitle>
                 <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
