@@ -27,5 +27,12 @@ public class AssetHistoryController {
     public List<AssetHistoryEntity> fetchAndSave(@PathVariable String symbol) {
         return historyService.fetchAndSave(symbol);
     }
+
+    @GetMapping("/{symbol}")
+    public List<AssetHistoryEntity> getAssetHistory(
+            @PathVariable String symbol
+    ) {
+        return historyService.getHistoryBySymbol(symbol);
+    }
 }
 

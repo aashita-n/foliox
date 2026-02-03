@@ -102,7 +102,6 @@ export default function Dashboard() {
     value: logSum > 0 ? Math.round((logTotals[index] / logSum) * 100) : 0,
   }));
 
-
   // Allocation by type based on quantity
   const typeTotals = {};
   let totalQuantity = 0;
@@ -119,6 +118,17 @@ export default function Dashboard() {
     value: totalQuantity > 0 ? Math.round((qty / totalQuantity) * 100) : 0,
   }));
 
+  // Diversification Score (replaces Portfolio Health)
+  const diversificationScore = (() => {
+    if (typeAllocationData.length === 0) return 0;
+    const proportions = typeAllocationData.map(t => t.value / 100);
+    const entropy = proportions.reduce((sum, p) => {
+      if (p === 0) return sum;
+      return sum + p * Math.log(p);
+    }, 0);
+    const maxEntropy = Math.log(typeAllocationData.length);
+    return Math.round((-entropy / maxEntropy) * 100);
+  })();
 
   // Mock portfolio growth
   const portfolioData = [
@@ -181,9 +191,9 @@ export default function Dashboard() {
 
             <Card className="rounded-2xl shadow-lg bg-cyan-50">
               <CardBody className="p-7">
-                <CardTitle>Portfolio Health</CardTitle>
+                <CardTitle>Diversification Score</CardTitle>
                 <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
-                <p className="mt-6 text-3xl font-extrabold text-center">{portfolioAssets.length > 0 ? "85" : "0"} / 100</p>
+                <p className="mt-6 text-3xl font-extrabold text-center">{diversificationScore} / 100</p>
               </CardBody>
             </Card>
 

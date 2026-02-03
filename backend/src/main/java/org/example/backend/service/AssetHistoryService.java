@@ -48,5 +48,9 @@ public class AssetHistoryService {
 
         return entities;
     }
+
+    public List<AssetHistoryEntity> getHistoryBySymbol(String symbol) {
+        return historyRepo.findBySymbolOrderByDateAsc(symbol);
+    }
 }
 

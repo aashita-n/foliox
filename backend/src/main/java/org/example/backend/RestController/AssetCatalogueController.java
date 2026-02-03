@@ -34,5 +34,12 @@ public class AssetCatalogueController {
     public AssetCatalogueEntity updateAsset(@PathVariable String symbol) {
         return assetCatalogueService.updateAsset(symbol);
     }
+
+    @GetMapping("/search")
+    public List<AssetCatalogueEntity> searchAssets(
+            @RequestParam String q
+    ) {
+        return assetCatalogueService.searchAssets(q);
+    }
 }
 
