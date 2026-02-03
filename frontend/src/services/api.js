@@ -80,8 +80,17 @@ export const getMarketQuote = async (ticker) => {
   return response.json();
 };
 
-// Get market history for a ticker
+// Get market history for a ticker (for Flask backend)
 export const getMarketHistory = async (ticker) => {
+  const response = await fetch(`/api/market/history/${ticker}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch market history');
+  }
+  return response.json();
+};
+
+// Get market history for a ticker (for Java backend)
+export const getMarketHistoryJava = async (ticker) => {
   const response = await fetch(`/market/history/${ticker}`);
   if (!response.ok) {
     throw new Error('Failed to fetch market history');

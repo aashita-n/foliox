@@ -29,6 +29,7 @@ import {
   buyAsset,
   sellAsset,
   sellAllAsset,
+  getMarketHistory,
 } from "../services/api";
 import TradePopup from "./TradePopup";
 
@@ -59,6 +60,7 @@ function LoadingSpinner() {
 export default function Dashboard() {
   const [portfolioAssets, setPortfolioAssets] = useState([]);
   const [balance, setBalance] = useState({ amount: 0 });
+  const [portfolioGrowthData, setPortfolioGrowthData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -78,12 +80,76 @@ export default function Dashboard() {
 
       setPortfolioAssets(assetsData);
       setBalance(balanceData);
+
+      // Fetch market history for each asset to calculate portfolio growth
+      if (assetsData.length > 0) {
+        await fetchPortfolioGrowth(assetsData);
+      }
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to load data from server");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Calculate portfolio growth from live market data
+  const fetchPortfolioGrowth = async (assets) => {
+    try {
+      console.log("Fetching portfolio growth for assets:", assets);
+      
+      const historyPromises = assets.map(async (asset) => {
+        try {
+          console.log(`Fetching history for ${asset.symbol}...`);
+          const history = await getMarketHistory(asset.symbol);
+          console.log(`History for ${asset.symbol}:`, history);
+          return { symbol: asset.symbol, quantity: asset.quantity, history };
+        } catch (err) {
+          console.warn(`Failed to fetch history for ${asset.symbol}:`, err);
+          return { symbol: asset.symbol, quantity: asset.quantity, history: [] };
+        }
+      });
+
+      const historyResults = await Promise.all(historyPromises);
+      console.log("History results:", historyResults);
+
+      // Build a map of date -> portfolio value
+      const dateValueMap = {};
+
+      historyResults.forEach(({ symbol, quantity, history }) => {
+        console.log(`Processing ${symbol} with ${history.length} history records`);
+        history.forEach((record) => {
+          const date = record.date;
+          if (!dateValueMap[date]) {
+            dateValueMap[date] = 0;
+          }
+          dateValueMap[date] += record.close * quantity;
+        });
+      });
+
+      console.log("Date value map:", dateValueMap);
+
+      // Convert to array and sort by date (oldest to newest)
+      const growthData = Object.entries(dateValueMap)
+        .map(([date, value]) => ({
+          date: formatDate(date),
+          value: Math.round(value),
+        }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      console.log("Final growth data:", growthData);
+      setPortfolioGrowthData(growthData);
+    } catch (err) {
+      console.error("Error calculating portfolio growth:", err);
+      // Fallback to mock data if calculation fails
+      setPortfolioGrowthData([]);
+    }
+  };
+
+  // Format date string to display month name
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
   };
 
   useEffect(() => {
@@ -130,12 +196,9 @@ export default function Dashboard() {
     return Math.round((-entropy / maxEntropy) * 100);
   })();
 
-  // Mock portfolio growth
-  const portfolioData = [
-    { date: "January", value: portfolioValue * 0.85 },
-    { date: "February", value: portfolioValue * 0.92 },
-    { date: "March", value: portfolioValue * 0.88 },
-    { date: "April", value: portfolioValue },
+  // Live portfolio growth data (fetched from API)
+  const portfolioData = portfolioGrowthData.length > 0 ? portfolioGrowthData : [
+    { date: "No data", value: 0 },
   ];
 
   // Trade popup functions
@@ -185,7 +248,7 @@ export default function Dashboard() {
               <CardBody className="p-7">
                 <CardTitle>Total Portfolio Value</CardTitle>
                 <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
-                <p className="mt-6 text-3xl font-extrabold text-center">₹{portfolioValue.toLocaleString()}</p>
+                <p className="mt-6 text-3xl font-extrabold text-center">${portfolioValue.toLocaleString()}</p>
               </CardBody>
             </Card>
 
@@ -201,7 +264,7 @@ export default function Dashboard() {
               <CardBody className="p-7">
                 <CardTitle>Available Balance</CardTitle>
                 <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
-                <p className="mt-6 text-3xl font-extrabold text-center">₹{balance.amount.toLocaleString()}</p>
+                <p className="mt-6 text-3xl font-extrabold text-center">${balance.amount.toLocaleString()}</p>
               </CardBody>
             </Card>
           </div>
@@ -316,10 +379,10 @@ export default function Dashboard() {
                             <TableRow key={asset.symbol}>
                               <TableCell className="font-semibold">{asset.symbol}</TableCell>
                               <TableCell>{asset.quantity}</TableCell>
-                              <TableCell>₹{asset.buyPrice.toLocaleString()}</TableCell>
-                              <TableCell>₹{asset.currentPrice.toLocaleString()}</TableCell>
+                              <TableCell>${asset.buyPrice.toLocaleString()}</TableCell>
+                              <TableCell>${asset.currentPrice.toLocaleString()}</TableCell>
                               <TableCell>
-                                <div className={`font-semibold ${pnl >= 0 ? "text-emerald-600" : "text-red-600"}`}>{pnl >= 0 ? "+" : ""}₹{pnl.toLocaleString()}</div>
+                                <div className={`font-semibold ${pnl >= 0 ? "text-emerald-600" : "text-red-600"}`}>{pnl >= 0 ? "+" : ""}${pnl.toLocaleString()}</div>
                                 <div className={`text-xs ${pnl >= 0 ? "text-emerald-500" : "text-red-500"}`}>{pnlPercent}%</div>
                               </TableCell>
                               <TableCell>

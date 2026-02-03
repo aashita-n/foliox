@@ -64,7 +64,7 @@ def get_quote(ticker):
 @app.route("/api/market/history/<ticker>", methods=["GET"])
 def get_history(ticker):
     stock = yf.Ticker(ticker)
-    hist = stock.history(period="6mo", interval="1d")
+    hist = stock.history(period="6mo", interval="1mo")
 
     if hist.empty:
         return jsonify([])
