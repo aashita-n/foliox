@@ -281,15 +281,15 @@ export default function Dashboard() {
           <div className="grid grid-cols-3 gap-7">
             <Card className="col-span-2 rounded-2xl shadow-lg !bg-white">
               <CardBody className="p-7">
-                <CardTitle align="left">Portfolio Growth</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2" />
+                <CardTitle>Portfolio Growth Over 6 Months </CardTitle>
+                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
                 <div className="mt-6 h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={portfolioData}>
                       <XAxis dataKey="date" />
                       <YAxis />
                       <Tooltip />
-                      <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={3} />
+                      <Line type="monotone" dataKey="value" stroke="#328ec4" strokeWidth={3} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
