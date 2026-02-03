@@ -30,6 +30,7 @@ import {
   sellAsset,
   sellAllAsset,
   getMarketHistory,
+  addAssetToCatalogue,
 } from "../services/api";
 import TradePopup from "./TradePopup";
 
@@ -217,11 +218,22 @@ export default function Dashboard() {
   };
   const handlePopupConfirm = async (symbol, quantity) => {
     try {
-      if (popupData.tradeType === "buy") await buyAsset(symbol, quantity);
-      else await sellAsset(symbol, quantity);
+      if (popupData.tradeType === "buy") {
+        // Try to add asset to catalogue first (in case it doesn't exist)
+        try {
+          await addAssetToCatalogue(symbol);
+        } catch (err) {
+          // Asset might already exist in catalogue, continue with buy
+          console.log("Asset may already exist in catalogue or could not be added:", err.message);
+        }
+        // Now attempt to buy
+        await buyAsset(symbol, quantity);
+      } else {
+        await sellAsset(symbol, quantity);
+      }
       fetchData();
-    } catch {
-      alert(`Failed to ${popupData.tradeType} asset`);
+    } catch (err) {
+      alert(`Failed to ${popupData.tradeType} asset: ${err.message}`);
     }
   };
 

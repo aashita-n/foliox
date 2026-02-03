@@ -98,3 +98,14 @@ export const getMarketHistoryJava = async (ticker) => {
   return response.json();
 };
 
+// Add new asset to catalogue (required before buying new tickers)
+export const addAssetToCatalogue = async (symbol) => {
+  const response = await fetch(`/api/catalogue/${symbol}`, {
+    method: 'POST',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to add asset to catalogue');
+  }
+  return response.json();
+};
+
