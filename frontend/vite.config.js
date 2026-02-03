@@ -15,11 +15,11 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
-      '/balance': {
+      '/portfolio': {
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
-      '/portfolio': {
+      '/balance': {
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
