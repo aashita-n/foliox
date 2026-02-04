@@ -1,0 +1,14 @@
+# Core ML / LLM
+# transformers>=4.36.0
+torch>=2.0.0
+accelerate>=0.25.0
+
+# Hugging Face access
+huggingface-hub>=0.20.0
+
+# Optional (but recommended)
+sentencepiece>=0.1.99
+
+ollama-python>=0.1.13
+flask>=2.3.0
+requests>=2.31.0
