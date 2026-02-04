@@ -1,10 +1,37 @@
+import os
 import requests
+import traceback
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from transformers import pipeline
+from openai import OpenAI
+from dotenv import load_dotenv
+import os
 
-# Initialize the chatbot pipeline (using distilgpt2 as an example)
-chatbot = pipeline("text-generation", model="distilgpt2", device=-1)
+# Load environment variables from .env file
+load_dotenv()
+
+# Now you can access the OpenAI API key
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+# Check if the API key is loaded
+if not OPENAI_API_KEY:
+    print("ERROR: OPENAI_API_KEY environment variable is not set!")
+else:
+    print("OPENAI_API_KEY is configured")
+
+openai_available = False
+client = None
+
+try:
+    if OPENAI_API_KEY:
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        openai_available = True
+        print("OpenAI client initialized successfully")
+    else:
+        print("ERROR: No API key provided - OPENAI_API_KEY environment variable is not set")
+except Exception as e:
+    print(f"Configuration Error: {e}")
+    traceback.print_exc()
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -15,6 +42,22 @@ CORS(app, resources={
         "allow_headers": ["Content-Type"]
     }
 })
+def generate_openai_response(prompt):
+    if not openai_available:
+        raise Exception("OpenAI is not available")
+
+    try:
+        response = client.responses.create(
+            model="gpt-4.1-mini",  # or gpt-4o-mini
+            input=prompt
+        )
+        return response.output_text
+    except Exception as e:
+        print("OpenAI API error:", e)
+        traceback.print_exc()
+        raise
+
+
 
 @app.route("/ai-chat", methods=["GET", "POST", "OPTIONS"])
 def ai_chat():
@@ -30,8 +73,16 @@ def ai_chat():
         })
     
     # Handle POST request
-    user_input = request.json.get("question", "")
+    data = request.get_json(silent=True) or {}
+    user_input = data.get("question", "")
+
     print(f"Received question: {user_input}")
+
+    # Check if OpenAI is available
+    if not openai_available:
+        return jsonify({
+            "response": "Error: OpenAI API is not configured. Please set the OPENAI_API_KEY environment variable."
+        }), 500
 
     # Portfolio-specific question
     if "portfolio" in user_input.lower():
@@ -65,17 +116,13 @@ IMPORTANT RULES:
 - Write at least 5 complete sentences.
 - Do not summarize in one line.
 - Keep the explanation practical and investor-focused.
+- Provide a clear, structured response.
+- Do NOT include the prompt or question in your response.
 """
 
-                ai_response = chatbot(
-                    prompt,
-                    max_length=180,
-                    temperature=0.7,
-                    top_p=0.9,
-                    do_sample=True
-                )
+                ai_response = generate_openai_response(prompt)
                 print("AI response generated successfully")
-                return jsonify({"response": ai_response[0]["generated_text"]})
+                return jsonify({"response": ai_response})
             else:
                 return jsonify({"response": f"Error: Immune API returned status {response.status_code}"}), 500
                 
@@ -84,6 +131,7 @@ IMPORTANT RULES:
             return jsonify({"response": "Error: Could not connect to immune analysis service. Make sure script.py is running on port 5000."}), 500
         except Exception as e:
             print(f"Error generating AI response: {e}")
+            traceback.print_exc()
             return jsonify({"response": f"Error: {str(e)}"}), 500
 
     # General finance Q&A
@@ -96,7 +144,7 @@ You are a finance assistant.
 Answer the question below in a structured and informative manner.
 
 ### Explanation
-Explain the concept clearly.
+Explain the concept clearly in at least 4-5 sentences.
 
 ### Key Points
 - Important idea 1
@@ -110,22 +158,20 @@ IMPORTANT RULES:
 - Minimum 4 to 5 sentences.
 - Avoid one-line answers.
 - Stay strictly within finance topics.
+- Provide clear, well-structured response.
+- Do NOT include the prompt or question in your response.
+- Do NOT repeat questions or headers in your answer.
 
 Question:
 {user_input}
 """
 
-            ai_response = chatbot(
-                prompt,
-                max_length=180,
-                temperature=0.7,
-                top_p=0.9,
-                do_sample=True
-            )
+            ai_response = generate_openai_response(prompt)
             print("AI response generated successfully")
-            return jsonify({"response": ai_response[0]["generated_text"]})
+            return jsonify({"response": ai_response})
         except Exception as e:
             print(f"Error generating AI response: {e}")
+            traceback.print_exc()
             return jsonify({"response": f"Error: {str(e)}"}), 500
 
 if __name__ == "__main__":
