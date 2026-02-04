@@ -378,10 +378,15 @@ export default function Dashboard() {
           {/* Holdings Table */}
           <Card className="rounded-2xl shadow-lg !bg-white">
             <CardBody className="p-7">
-              <div className="mb-5 text-center">
-                <CardTitle>Holdings</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
+              <div className="mb-6 text-center">
+                <CardTitle className="text-15xl font-extrabold tracking-wide text-slate-900">
+                  Holdings
+                </CardTitle>
+
+                <div className="h-1 w-24 rounded-full bg-cyan-500 mt-4 mx-auto" />
               </div>
+
+
 
               <div className="flex justify-end mb-5 gap-2">
                 <Button
@@ -411,43 +416,82 @@ export default function Dashboard() {
               ) : (
                   <Table>
                     <TableHeader>
-                      <TableColumn>Ticker</TableColumn>
-                      <TableColumn>Name</TableColumn>
-                      <TableColumn>Quantity</TableColumn>
-                      <TableColumn>Buy Date</TableColumn>
-                      <TableColumn>Buy Price</TableColumn>
-                      <TableColumn>Current Price</TableColumn>
-                      <TableColumn>P&L</TableColumn>
-                      <TableColumn>Actions</TableColumn>
+                      <TableColumn className="w-24 px-4">Ticker</TableColumn>
+                      <TableColumn className="w-44 px-4">Name</TableColumn>
+                      <TableColumn className="w-20 px-4 text-center">Qty</TableColumn>
+                      <TableColumn className="w-32 px-4">Buy Date</TableColumn>
+                      <TableColumn className="w-32 px-4">Buy Price</TableColumn>
+                      <TableColumn className="w-36 px-4">Current</TableColumn>
+                      <TableColumn className="w-32 px-4">P&L</TableColumn>
+                      <TableColumn className="w-48 px-6 text-right">Actions</TableColumn>
                     </TableHeader>
+
+
                     <TableBody>
                       {portfolioAssets.map((asset) => {
                         const pnl = (asset.currentPrice - asset.buyPrice) * asset.quantity;
                         const pnlPercent = asset.buyPrice > 0 ? ((asset.currentPrice - asset.buyPrice) / asset.buyPrice * 100).toFixed(2) : 0;
                         return (
-                            <TableRow key={asset.symbol}>
-                              <TableCell className="font-semibold">{asset.symbol}</TableCell>
-                              <TableCell className="font-semibold">{asset.name}</TableCell>
-                              <TableCell>{asset.quantity}</TableCell>
-                              <TableCell>
+                            <TableRow key={asset.symbol} className="h-14">
+                              <TableCell className="px-4 font-semibold align-middle">
+                                {asset.symbol}
+                              </TableCell>
+
+                              <TableCell className="px-4 font-semibold align-middle">
+                                {asset.name}
+                              </TableCell>
+
+                              <TableCell className="px-4 text-center align-middle">
+                                {asset.quantity}
+                              </TableCell>
+
+                              <TableCell className="px-4 align-middle">
                                 {asset.buyTimestamp
                                   ? new Date(asset.buyTimestamp).toLocaleDateString()
                                   : "-"}
                               </TableCell>
 
-                              <TableCell>${asset.buyPrice.toLocaleString()}</TableCell>
-                              <TableCell>${asset.currentPrice.toLocaleString()}</TableCell>
-                              <TableCell>
-                                <div className={`font-semibold ${pnl >= 0 ? "text-emerald-600" : "text-red-600"}`}>{pnl >= 0 ? "+" : ""}${pnl.toLocaleString()}</div>
-                                <div className={`text-xs ${pnl >= 0 ? "text-emerald-500" : "text-red-500"}`}>{pnlPercent}%</div>
+                              <TableCell className="px-4 align-middle">
+                                ${asset.buyPrice.toLocaleString()}
                               </TableCell>
-                              <TableCell>
-                                <div className="flex gap-2">
-                                  <Button size="sm" variant="flat" className="rounded-full border-2 border-green-600 text-green-600 font-semibold px-4 hover:bg-green-50" onClick={() => handleBuy(asset.symbol)}>Add</Button>
-                                  <Button size="sm" variant="flat" className="rounded-full border-2 border-red-600 text-red-600 font-semibold px-4 hover:bg-red-50" onClick={() => handleSell(asset.symbol, asset.quantity)}>remove</Button>
+
+                              <TableCell className="px-4 align-middle">
+                                ${asset.currentPrice.toLocaleString()}
+                              </TableCell>
+
+                              <TableCell className="px-4 align-middle">
+                                <div className="flex flex-col leading-tight">
+                                  <span className={`font-semibold ${pnl >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                                    {pnl >= 0 ? "+" : ""}${pnl.toLocaleString()}
+                                  </span>
+                                  <span className={`text-xs ${pnl >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                                    {pnlPercent}%
+                                  </span>
+                                </div>
+                              </TableCell>
+
+                              <TableCell className="px-6 align-middle text-right">
+                                <div className="flex justify-end gap-3">
+                                  <Button
+                                    size="sm"
+                                    variant="flat"
+                                    className="rounded-full border-2 border-green-600 text-green-600 font-semibold px-4"
+                                  >
+                                    Add
+                                  </Button>
+
+                                  <Button
+                                    size="sm"
+                                    variant="flat"
+                                    className="rounded-full border-2 border-red-600 text-red-600 font-semibold px-4"
+                                  >
+                                    Remove
+                                  </Button>
                                 </div>
                               </TableCell>
                             </TableRow>
+
+
                         );
                       })}
                     </TableBody>
