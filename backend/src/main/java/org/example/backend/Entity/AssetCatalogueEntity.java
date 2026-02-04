@@ -22,6 +22,8 @@ public class AssetCatalogueEntity {
     private String currency;
     private String exchange;
 
+
+
     @Column(name = "last_updated")
     private LocalDateTime lastUpdated;
 
