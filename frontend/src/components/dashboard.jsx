@@ -475,7 +475,7 @@ export default function Dashboard() {
                                   <Button
                                     size="sm"
                                     variant="flat"
-                                    className="rounded-full border-2 border-green-600 text-green-600 font-semibold px-4"
+                                    className="rounded-full border-2 border-green-600 text-green-600 font-semibold px-4" onClick={() => handleBuy(asset.symbol)}
                                   >
                                     Add
                                   </Button>
@@ -483,7 +483,7 @@ export default function Dashboard() {
                                   <Button
                                     size="sm"
                                     variant="flat"
-                                    className="rounded-full border-2 border-red-600 text-red-600 font-semibold px-4"
+                                    className="rounded-full border-2 border-red-600 text-red-600 font-semibold px-4" onClick={() => handleSell(asset.symbol, asset.quantity)}
                                   >
                                     Remove
                                   </Button>
