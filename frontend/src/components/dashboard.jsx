@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import AssetCatalogueCard from "./AssetCatalogueCard ";
 import {
   Card,
   CardBody,
@@ -441,25 +442,25 @@ export default function Dashboard() {
                                 {asset.name}
                               </TableCell>
 
-                              <TableCell className="px-4 text-center align-middle">
+                              <TableCell className="px-4 font-semibold text-center align-middle">
                                 {asset.quantity}
                               </TableCell>
 
-                              <TableCell className="px-4 align-middle">
+                              <TableCell className="px-4 font-semibold align-middle">
                                 {asset.buyTimestamp
                                   ? new Date(asset.buyTimestamp).toLocaleDateString()
                                   : "-"}
                               </TableCell>
 
-                              <TableCell className="px-4 align-middle">
+                              <TableCell className="px-4 font-semibold align-middle">
                                 ${asset.buyPrice.toLocaleString()}
                               </TableCell>
 
-                              <TableCell className="px-4 align-middle">
+                              <TableCell className="px-4 font-semibold align-middle">
                                 ${asset.currentPrice.toLocaleString()}
                               </TableCell>
 
-                              <TableCell className="px-4 align-middle">
+                              <TableCell className="px-4 font-semibold align-middle">
                                 <div className="flex flex-col leading-tight">
                                   <span className={`font-semibold ${pnl >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                                     {pnl >= 0 ? "+" : ""}${pnl.toLocaleString()}
@@ -470,7 +471,7 @@ export default function Dashboard() {
                                 </div>
                               </TableCell>
 
-                              <TableCell className="px-6 align-middle text-right">
+                              <TableCell className="px-6 font-semibold align-middle text-right">
                                 <div className="flex justify-end gap-3">
                                   <Button
                                     size="sm"
@@ -499,6 +500,11 @@ export default function Dashboard() {
               )}
             </CardBody>
           </Card>
+          <AssetCatalogueCard
+            onBuy={handleBuy}
+          />
+
+
         </div>
 
         <TradePopup
