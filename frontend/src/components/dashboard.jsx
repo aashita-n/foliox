@@ -415,8 +415,8 @@ export default function Dashboard() {
                               </TableCell>
                               <TableCell>
                                 <div className="flex gap-2">
-                                  <Button size="sm" variant="flat" className="rounded-full border-2 border-green-600 text-green-600 font-semibold px-4 hover:bg-green-50" onClick={() => handleBuy(asset.symbol)}>Buy</Button>
-                                  <Button size="sm" variant="flat" className="rounded-full border-2 border-red-600 text-red-600 font-semibold px-4 hover:bg-red-50" onClick={() => handleSell(asset.symbol, asset.quantity)}>Sell</Button>
+                                  <Button size="sm" variant="flat" className="rounded-full border-2 border-green-600 text-green-600 font-semibold px-4 hover:bg-green-50" onClick={() => handleBuy(asset.symbol)}>Add</Button>
+                                  <Button size="sm" variant="flat" className="rounded-full border-2 border-red-600 text-red-600 font-semibold px-4 hover:bg-red-50" onClick={() => handleSell(asset.symbol, asset.quantity)}>remove</Button>
                                 </div>
                               </TableCell>
                             </TableRow>
