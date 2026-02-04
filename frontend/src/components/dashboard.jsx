@@ -412,7 +412,9 @@ export default function Dashboard() {
                   <Table>
                     <TableHeader>
                       <TableColumn>Ticker</TableColumn>
+                      <TableColumn>Name</TableColumn>
                       <TableColumn>Quantity</TableColumn>
+                      <TableColumn>Buy Date</TableColumn>
                       <TableColumn>Buy Price</TableColumn>
                       <TableColumn>Current Price</TableColumn>
                       <TableColumn>P&L</TableColumn>
@@ -425,7 +427,14 @@ export default function Dashboard() {
                         return (
                             <TableRow key={asset.symbol}>
                               <TableCell className="font-semibold">{asset.symbol}</TableCell>
+                              <TableCell className="font-semibold">{asset.name}</TableCell>
                               <TableCell>{asset.quantity}</TableCell>
+                              <TableCell>
+                                {asset.buyTimestamp
+                                  ? new Date(asset.buyTimestamp).toLocaleDateString()
+                                  : "-"}
+                              </TableCell>
+
                               <TableCell>${asset.buyPrice.toLocaleString()}</TableCell>
                               <TableCell>${asset.currentPrice.toLocaleString()}</TableCell>
                               <TableCell>
