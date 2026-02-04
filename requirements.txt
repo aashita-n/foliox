@@ -1,15 +1,14 @@
-# Core ML / LLM
-# transformers>=4.36.0
-torch>=2.0.0
-accelerate>=0.25.0
-
-# Hugging Face access
-huggingface-hub>=0.20.0
-
-# Optional (but recommended)
-sentencepiece>=0.1.99
-
-ollama-python>=0.1.13
+# Flask web framework
 flask>=2.3.0
 flask-cors>=4.0.0
 requests>=2.31.0
+
+# OpenAI API
+openai>=1.0.0
+
+# Optional: Ollama integration (if using local models)
+ollama-python>=0.1.13
+
+# Environment variables
+python-dotenv>=1.0.0
+

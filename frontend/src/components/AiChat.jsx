@@ -22,7 +22,7 @@ export default function AiChat() {
 
     try {
       // Send the question to the Flask AI chat API (proxied by Vite)
-      const response = await fetch("/ai-chat", {
+      const response = await fetch("http://localhost:5001/ai-chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
