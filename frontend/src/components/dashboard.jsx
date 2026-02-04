@@ -42,7 +42,7 @@ const COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#14b8a6"];
 function CardTitle({ children, align = "center" }) {
   return (
       <p
-          className={`text-xs font-semibold tracking-widest uppercase text-zinc-600 ${
+          className={`text-xl font-semibold tracking-widest uppercase text-slate-800 ${
               align === "left" ? "text-left" : "text-center"
           }`}
       >
@@ -379,7 +379,7 @@ export default function Dashboard() {
           <Card className="rounded-2xl shadow-lg !bg-white">
             <CardBody className="p-7">
               <div className="mb-6 text-center">
-                <CardTitle className="text-15xl font-extrabold tracking-wide text-slate-900">
+                <CardTitle className="text-15xl font-extrabold tracking-wide text-slate-300">
                   Holdings
                 </CardTitle>
 
