@@ -29,6 +29,8 @@ import {
   buyAsset,
   sellAsset,
   sellAllAsset,
+  getMarketHistory,
+  addAssetToCatalogue,
 } from "../services/api";
 import TradePopup from "./TradePopup";
 
@@ -38,7 +40,7 @@ const COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#14b8a6"];
 function CardTitle({ children, align = "center" }) {
   return (
       <p
-          className={`text-xs font-semibold tracking-widest uppercase text-slate-600 ${
+          className={`text-xs font-semibold tracking-widest uppercase text-zinc-600 ${
               align === "left" ? "text-left" : "text-center"
           }`}
       >
@@ -50,7 +52,7 @@ function CardTitle({ children, align = "center" }) {
 function LoadingSpinner() {
   return (
       <div className="flex justify-center items-center h-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600"></div>
       </div>
   );
 }
@@ -59,6 +61,7 @@ function LoadingSpinner() {
 export default function Dashboard() {
   const [portfolioAssets, setPortfolioAssets] = useState([]);
   const [balance, setBalance] = useState({ amount: 0 });
+  const [portfolioGrowthData, setPortfolioGrowthData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -78,12 +81,76 @@ export default function Dashboard() {
 
       setPortfolioAssets(assetsData);
       setBalance(balanceData);
+
+      // Fetch market history for each asset to calculate portfolio growth
+      if (assetsData.length > 0) {
+        await fetchPortfolioGrowth(assetsData);
+      }
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to load data from server");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Calculate portfolio growth from live market data
+  const fetchPortfolioGrowth = async (assets) => {
+    try {
+      console.log("Fetching portfolio growth for assets:", assets);
+      
+      const historyPromises = assets.map(async (asset) => {
+        try {
+          console.log(`Fetching history for ${asset.symbol}...`);
+          const history = await getMarketHistory(asset.symbol);
+          console.log(`History for ${asset.symbol}:`, history);
+          return { symbol: asset.symbol, quantity: asset.quantity, history };
+        } catch (err) {
+          console.warn(`Failed to fetch history for ${asset.symbol}:`, err);
+          return { symbol: asset.symbol, quantity: asset.quantity, history: [] };
+        }
+      });
+
+      const historyResults = await Promise.all(historyPromises);
+      console.log("History results:", historyResults);
+
+      // Build a map of date -> portfolio value
+      const dateValueMap = {};
+
+      historyResults.forEach(({ symbol, quantity, history }) => {
+        console.log(`Processing ${symbol} with ${history.length} history records`);
+        history.forEach((record) => {
+          const date = record.date;
+          if (!dateValueMap[date]) {
+            dateValueMap[date] = 0;
+          }
+          dateValueMap[date] += record.close * quantity;
+        });
+      });
+
+      console.log("Date value map:", dateValueMap);
+
+      // Convert to array and sort by date (oldest to newest)
+      const growthData = Object.entries(dateValueMap)
+        .map(([date, value]) => ({
+          date: formatDate(date),
+          value: Math.round(value),
+        }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      console.log("Final growth data:", growthData);
+      setPortfolioGrowthData(growthData);
+    } catch (err) {
+      console.error("Error calculating portfolio growth:", err);
+      // Fallback to mock data if calculation fails
+      setPortfolioGrowthData([]);
+    }
+  };
+
+  // Format date string to display month name
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
   };
 
   useEffect(() => {
@@ -130,12 +197,9 @@ export default function Dashboard() {
     return Math.round((-entropy / maxEntropy) * 100);
   })();
 
-  // Mock portfolio growth
-  const portfolioData = [
-    { date: "January", value: portfolioValue * 0.85 },
-    { date: "February", value: portfolioValue * 0.92 },
-    { date: "March", value: portfolioValue * 0.88 },
-    { date: "April", value: portfolioValue },
+  // Live portfolio growth data (fetched from API)
+  const portfolioData = portfolioGrowthData.length > 0 ? portfolioGrowthData : [
+    { date: "No data", value: 0 },
   ];
 
   // Trade popup functions
@@ -154,71 +218,90 @@ export default function Dashboard() {
   };
   const handlePopupConfirm = async (symbol, quantity) => {
     try {
-      if (popupData.tradeType === "buy") await buyAsset(symbol, quantity);
-      else await sellAsset(symbol, quantity);
+      if (popupData.tradeType === "buy") {
+        // Try to add asset to catalogue first (in case it doesn't exist)
+        try {
+          await addAssetToCatalogue(symbol);
+        } catch (err) {
+          // Asset might already exist in catalogue, continue with buy
+          console.log("Asset may already exist in catalogue or could not be added:", err.message);
+        }
+        // Now attempt to buy
+        await buyAsset(symbol, quantity);
+      } else {
+        await sellAsset(symbol, quantity);
+      }
       fetchData();
-    } catch {
-      alert(`Failed to ${popupData.tradeType} asset`);
+    } catch (err) {
+      alert(`Failed to ${popupData.tradeType} asset: ${err.message}`);
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-gradient-to-b from-slate-50 to-indigo-100 flex items-center justify-center"><LoadingSpinner /></div>;
+  if (loading) return <div className="min-h-screen bg-gradient-to-b from-white to-cyan-100 flex items-center justify-center"><LoadingSpinner /></div>;
 
   return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-indigo-100">
+      <div className="min-h-screen bg-gradient-to-b from-white to-cyan-100">
         {/* Top Bar */}
-        <div className="sticky top-0 z-10 h-16 bg-white shadow-md flex items-center px-10">
-          <h1 className="text-xl font-extrabold tracking-wide text-indigo-600">FolioX</h1>
+        <div className="sticky top-0 z-10 h-16 !bg-white shadow-md flex items-center px-10">
+          <h1 className="text-xl font-extrabold tracking-wide text-cyan-600">FolioX</h1>
         </div>
 
         <div className="p-10 flex flex-col gap-10">
           <div>
-            <h2 className="text-5xl font-black text-indigo-600">Hi Sumeet</h2>
-            <p className="text-lg text-slate-600 mt-2 italic">Welcome back to your dashboard.</p>
+            <h2 className="text-5xl font-black text-cyan-600">Hi Sumeet</h2>
+            <p className="text-lg text-zinc-600 mt-2 italic">Welcome back to your dashboard.</p>
           </div>
 
           {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>}
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-3 gap-7">
-            <Card className="rounded-2xl shadow-lg bg-indigo-50">
+          <div className="grid grid-cols-4 gap-7">
+            <Card className="rounded-2xl shadow-lg bg-amber-50">
               <CardBody className="p-7">
                 <CardTitle>Total Portfolio Value</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
-                <p className="mt-6 text-3xl font-extrabold text-center">₹{portfolioValue.toLocaleString()}</p>
+                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
+                <p className="mt-6 text-3xl font-extrabold text-center">${portfolioValue.toLocaleString()}</p>
               </CardBody>
             </Card>
 
-            <Card className="rounded-2xl shadow-lg bg-cyan-50">
+            <Card className="rounded-2xl shadow-lg bg-yellow-100">
               <CardBody className="p-7">
                 <CardTitle>Diversification Score</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
+                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
                 <p className="mt-6 text-3xl font-extrabold text-center">{diversificationScore} / 100</p>
               </CardBody>
             </Card>
 
-            <Card className="rounded-2xl shadow-lg bg-emerald-50">
+            <Card className="rounded-2xl shadow-lg bg-lime-100">
+              <CardBody className="p-7">
+                <CardTitle>Immune Score</CardTitle>
+                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
+                <p className="mt-6 text-3xl font-extrabold text-center">85 / 100</p>
+              </CardBody>
+            </Card>
+
+            <Card className="rounded-2xl shadow-lg bg-green-100">
               <CardBody className="p-7">
                 <CardTitle>Available Balance</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
-                <p className="mt-6 text-3xl font-extrabold text-center">₹{balance.amount.toLocaleString()}</p>
+                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
+                <p className="mt-6 text-3xl font-extrabold text-center">${balance.amount.toLocaleString()}</p>
               </CardBody>
             </Card>
           </div>
 
           {/* Charts */}
           <div className="grid grid-cols-3 gap-7">
-            <Card className="col-span-2 rounded-2xl shadow-lg bg-slate-50">
+            <Card className="col-span-2 rounded-2xl shadow-lg !bg-white">
               <CardBody className="p-7">
-                <CardTitle align="left">Portfolio Growth</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2" />
+                <CardTitle>Portfolio Growth Over 6 Months </CardTitle>
+                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
                 <div className="mt-6 h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={portfolioData}>
                       <XAxis dataKey="date" />
                       <YAxis />
                       <Tooltip />
-                      <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={3} />
+                      <Line type="monotone" dataKey="value" stroke="#328ec4" strokeWidth={3} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -228,10 +311,10 @@ export default function Dashboard() {
             {/* Pie Charts */}
             <div className="flex flex-col gap-7">
               {/* By Symbol */}
-              <Card className="rounded-2xl shadow-lg bg-slate-50">
+              <Card className="rounded-2xl shadow-lg !bg-white">
                 <CardBody className="p-7">
                   <CardTitle>Asset Allocation</CardTitle>
-                  <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
+                  <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
                   <div className="mt-6 h-[220px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -244,10 +327,10 @@ export default function Dashboard() {
                   </div>
                   <div className="flex flex-col gap-3 items-center mt-4">
                     {allocationData.map((item, index) => (
-                        <div key={item.name} className="flex items-center gap-3 text-sm text-slate-700">
+                        <div key={item.name} className="flex items-center gap-3 text-sm text-zinc-700">
                           <div className="h-3 w-3 rounded-md" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                           <span className="font-semibold">{item.name}</span>
-                          <span className="text-slate-500">{item.value}%</span>
+                          <span className="text-white0">{item.value}%</span>
                         </div>
                     ))}
                   </div>
@@ -255,10 +338,10 @@ export default function Dashboard() {
               </Card>
 
               {/* By Type */}
-              <Card className="rounded-2xl shadow-lg bg-slate-50">
+              <Card className="rounded-2xl shadow-lg !bg-white">
                 <CardBody className="p-7">
                   <CardTitle>Allocation by Asset Type</CardTitle>
-                  <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
+                  <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
                   <div className="mt-6 h-[220px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -271,10 +354,10 @@ export default function Dashboard() {
                   </div>
                   <div className="flex flex-col gap-3 items-center mt-4">
                     {typeAllocationData.map((item, index) => (
-                        <div key={item.name} className="flex items-center gap-3 text-sm text-slate-700">
+                        <div key={item.name} className="flex items-center gap-3 text-sm text-zinc-700">
                           <div className="h-3 w-3 rounded-md" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                           <span className="font-semibold">{item.name}</span>
-                          <span className="text-slate-500">{item.value}%</span>
+                          <span className="text-white0">{item.value}%</span>
                         </div>
                     ))}
                   </div>
@@ -284,11 +367,11 @@ export default function Dashboard() {
           </div>
 
           {/* Holdings Table */}
-          <Card className="rounded-2xl shadow-lg bg-slate-50">
+          <Card className="rounded-2xl shadow-lg !bg-white">
             <CardBody className="p-7">
               <div className="mb-5 text-center">
                 <CardTitle>Holdings</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-indigo-500 mt-2 mx-auto" />
+                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
               </div>
 
               <div className="flex justify-end mb-5 gap-2">
@@ -297,7 +380,7 @@ export default function Dashboard() {
               </div>
 
               {portfolioAssets.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">No assets in your portfolio yet. Add some assets to get started.</div>
+                  <div className="text-center py-8 text-white0">No assets in your portfolio yet. Add some assets to get started.</div>
               ) : (
                   <Table>
                     <TableHeader>
@@ -316,10 +399,10 @@ export default function Dashboard() {
                             <TableRow key={asset.symbol}>
                               <TableCell className="font-semibold">{asset.symbol}</TableCell>
                               <TableCell>{asset.quantity}</TableCell>
-                              <TableCell>₹{asset.buyPrice.toLocaleString()}</TableCell>
-                              <TableCell>₹{asset.currentPrice.toLocaleString()}</TableCell>
+                              <TableCell>${asset.buyPrice.toLocaleString()}</TableCell>
+                              <TableCell>${asset.currentPrice.toLocaleString()}</TableCell>
                               <TableCell>
-                                <div className={`font-semibold ${pnl >= 0 ? "text-emerald-600" : "text-red-600"}`}>{pnl >= 0 ? "+" : ""}₹{pnl.toLocaleString()}</div>
+                                <div className={`font-semibold ${pnl >= 0 ? "text-emerald-600" : "text-red-600"}`}>{pnl >= 0 ? "+" : ""}${pnl.toLocaleString()}</div>
                                 <div className={`text-xs ${pnl >= 0 ? "text-emerald-500" : "text-red-500"}`}>{pnlPercent}%</div>
                               </TableCell>
                               <TableCell>

@@ -35,7 +35,7 @@ export default function TradePopup({ isOpen, tradeType, initialSymbol, onClose, 
       onClick={handleBackdropClick}
     >
       {/* Modal content */}
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 transform transition-all">
+      <div className="!bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 transform transition-all">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2
@@ -65,7 +65,7 @@ export default function TradePopup({ isOpen, tradeType, initialSymbol, onClose, 
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.toUpperCase())}
               placeholder="e.g., AAPL"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-lg"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all text-lg"
             />
           </div>
 
@@ -79,7 +79,7 @@ export default function TradePopup({ isOpen, tradeType, initialSymbol, onClose, 
               min="1"
               value={quantity}
               onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-lg"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all text-lg"
             />
           </div>
         </div>
