@@ -21,8 +21,8 @@ export default function AiChat() {
     setInput("");
 
     try {
-      // Send the question to the backend API
-      const response = await fetch("http://localhost:5173/ai-chat", {
+      // Send the question to the Flask AI chat API (proxied by Vite)
+      const response = await fetch("/ai-chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

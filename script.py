@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import yfinance as yf
 from datetime import datetime
 import pandas as pd
@@ -6,6 +7,7 @@ import numpy as np
 
 
 app = Flask(__name__)
+CORS(app)
 
 # -----------------------------
 # Utility: detect asset type

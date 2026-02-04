@@ -247,7 +247,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-extrabold tracking-wide text-cyan-600">FolioX</h1>
           </div>
-          <Link to="/ai-chat">
+          <Link to="/ai-assistant">
             <Button color="primary" variant="flat" className="rounded-full">
               Chat with Bot
             </Button>

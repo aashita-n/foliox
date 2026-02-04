@@ -5,6 +5,7 @@ import org.example.backend.service.ImmunityAnalysisService;
 import org.example.backend.service.PortfolioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,7 +27,16 @@ public class ImmuneController {
     }
 
     @GetMapping("/analyze")
-    public ResponseEntity<?> analyzePortfolio() {
+    public ResponseEntity<?> analyzePortfolioGet() {
+        return analyzePortfolio();
+    }
+
+    @PostMapping("/analyze")
+    public ResponseEntity<?> analyzePortfolioPost() {
+        return analyzePortfolio();
+    }
+
+    private ResponseEntity<?> analyzePortfolio() {
         // Step 1: Get the portfolio data (already in DTO format)
         List<PortfolioAssetDTO> portfolio = portfolioService.getPortfolio();
 

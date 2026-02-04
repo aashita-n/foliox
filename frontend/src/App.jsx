@@ -7,7 +7,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/ai-chat" element={<AiChat />} />
+        <Route path="/ai-assistant" element={<AiChat />} />
       </Routes>
     </Router>
   );
