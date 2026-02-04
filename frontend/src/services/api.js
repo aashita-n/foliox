@@ -109,3 +109,15 @@ export const addAssetToCatalogue = async (symbol) => {
   return response.json();
 };
 
+export const refreshPortfolio = async () => {
+  const response = await fetch(`/portfolio/refresh`, {
+    method: 'POST',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to refresh portfolio');
+  }
+
+  return response.json();
+};
+

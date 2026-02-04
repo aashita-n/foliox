@@ -19,13 +19,15 @@ public class PortfolioService {
     private final PortfolioAssetRepository portfolioRepo;
     private final AssetCatalogueRepository assetCatalogueRepo;
     private final BalanceService balanceService;
+    private final AssetCatalogueService assetCatalogueService;
 
     public PortfolioService(PortfolioAssetRepository portfolioRepo,
                             AssetCatalogueRepository assetCatalogueRepo,
-                            BalanceService balanceService) {
+                            BalanceService balanceService, AssetCatalogueService assetCatalogueService) {
         this.portfolioRepo = portfolioRepo;
         this.assetCatalogueRepo = assetCatalogueRepo;
         this.balanceService = balanceService;
+        this.assetCatalogueService = assetCatalogueService;
     }
 
     public List<PortfolioAssetDTO> getPortfolio() {
@@ -160,6 +162,22 @@ public class PortfolioService {
         balanceService.add(proceeds);
 
         portfolioRepo.delete(asset);
+    }
+
+
+    @Transactional
+    public List<PortfolioAssetDTO> refreshPortfolioAssets() {
+
+        // 1. Fetch portfolio assets
+        List<PortfolioAssetEntity> assets = portfolioRepo.findAll();
+
+        // 2. Update catalogue for each symbol
+        for (PortfolioAssetEntity asset : assets) {
+            assetCatalogueService.updateAsset(asset.getSymbol());
+        }
+
+        // 3. Fetch fresh portfolio data (joined with catalogue)
+        return getPortfolio();
     }
 
 }

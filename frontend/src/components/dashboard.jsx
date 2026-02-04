@@ -32,6 +32,7 @@ import {
   sellAllAsset,
   getMarketHistory,
   addAssetToCatalogue,
+  refreshPortfolio
 } from "../services/api";
 import TradePopup from "./TradePopup";
 
@@ -383,7 +384,25 @@ export default function Dashboard() {
               </div>
 
               <div className="flex justify-end mb-5 gap-2">
-                <Button color="primary" onClick={fetchData}>Refresh</Button>
+                <Button
+                  color="primary"
+                  onClick={async () => {
+                    try {
+                      setLoading(true);
+                      const refreshedAssets = await refreshPortfolio();
+                      console.log(refreshedAssets);
+                      setPortfolioAssets(refreshedAssets);
+                    } catch (err) {
+                      console.log(err);
+                      alert("Failed to refresh portfolio");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                >
+                  Refresh
+                </Button>
+
                 <Button color="secondary" onClick={() => openTradePopup("buy", "")}>Add Asset</Button>
               </div>
 

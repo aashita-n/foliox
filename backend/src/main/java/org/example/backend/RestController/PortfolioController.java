@@ -43,6 +43,11 @@ public class PortfolioController {
         return "All quantity sold successfully";
     }
 
+    @PostMapping("/refresh")
+    public List<PortfolioAssetDTO> refreshPortfolio() {
+        return portfolioService.refreshPortfolioAssets();
+    }
+
 
 
 }
