@@ -31,23 +31,23 @@ export default function TradePopup({ isOpen, tradeType, initialSymbol, onClose, 
   return (
     // Backdrop overlay
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
       onClick={handleBackdropClick}
     >
       {/* Modal content */}
-      <div className="!bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 transform transition-all">
+      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2
-            className={`text-2xl font-bold ${
-              tradeType === "buy" ? "text-green-600" : "text-red-600"
+            className={`text-xl font-semibold ${
+              tradeType === "buy" ? "text-success-600" : "text-danger-600"
             }`}
           >
             {tradeType === "buy" ? "Buy Asset" : "Sell Asset"}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none transition-colors"
+            className="text-slate-400 hover:text-slate-600 text-2xl leading-none transition-colors"
           >
             ×
           </button>
@@ -57,7 +57,7 @@ export default function TradePopup({ isOpen, tradeType, initialSymbol, onClose, 
         <div className="space-y-4">
           {/* Symbol field */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
               Symbol
             </label>
             <input
@@ -65,13 +65,13 @@ export default function TradePopup({ isOpen, tradeType, initialSymbol, onClose, 
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.toUpperCase())}
               placeholder="e.g., AAPL"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all text-lg"
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
             />
           </div>
 
           {/* Quantity field */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
               Quantity
             </label>
             <input
@@ -79,7 +79,7 @@ export default function TradePopup({ isOpen, tradeType, initialSymbol, onClose, 
               min="1"
               value={quantity}
               onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all text-lg"
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
             />
           </div>
         </div>
@@ -88,17 +88,17 @@ export default function TradePopup({ isOpen, tradeType, initialSymbol, onClose, 
         <div className="flex gap-3 mt-8">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+            className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleConfirm}
             disabled={!symbol || quantity < 1}
-            className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-colors ${
+            className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors ${
               tradeType === "buy"
-                ? "bg-green-600 text-white hover:bg-green-700"
-                : "bg-red-600 text-white hover:bg-red-700"
+                ? "bg-success-500 text-white hover:bg-success-600"
+                : "bg-danger-500 text-white hover:bg-danger-600"
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {tradeType === "buy" ? "Buy" : "Sell"}

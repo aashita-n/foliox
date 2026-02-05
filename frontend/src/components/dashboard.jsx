@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AssetCatalogueCard from "./AssetCatalogueCard ";
-import ImmunityCard from "./ImmunityCard";
 import ImmuneScoreCard from "./ImmuneScoreCard";
 
 
@@ -37,11 +36,13 @@ import {
   sellAllAsset,
   getMarketHistory,
   addAssetToCatalogue,
-  refreshPortfolio
+  refreshPortfolio,
+  getImmunityAnalysis
 } from "../services/api";
 import TradePopup from "./TradePopup";
 
-const COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#14b8a6"];
+// Professional chart colors (sophisticated palette with ultramarine primary)
+const COLORS = ["#3458bb", "#f32b88", "#7c3aed", "#f5df1f", "#059669"];
 
 /* ---UI Helpers--- */
 function CardTitle({ children, align = "center" }) {
@@ -59,7 +60,7 @@ function CardTitle({ children, align = "center" }) {
 function LoadingSpinner() {
   return (
       <div className="flex justify-center items-center h-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
       </div>
   );
 }
@@ -69,6 +70,7 @@ export default function Dashboard() {
   const [portfolioAssets, setPortfolioAssets] = useState([]);
   const [balance, setBalance] = useState({ amount: 0 });
   const [portfolioGrowthData, setPortfolioGrowthData] = useState([]);
+  const [immunityData, setImmunityData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -81,13 +83,15 @@ export default function Dashboard() {
       setLoading(true);
       setError(null);
 
-      const [assetsData, balanceData] = await Promise.all([
+      const [assetsData, balanceData, immunityData] = await Promise.all([
         getPortfolioAssets(),
         getBalance(),
+        getImmunityAnalysis().catch(() => null), // Don't fail if immunity fails
       ]);
 
       setPortfolioAssets(assetsData);
       setBalance(balanceData);
+      setImmunityData(immunityData);
 
       // Fetch market history for each asset to calculate portfolio growth
       if (assetsData.length > 0) {
@@ -244,104 +248,167 @@ export default function Dashboard() {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-gradient-to-b from-white to-cyan-100 flex items-center justify-center"><LoadingSpinner /></div>;
+  if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><LoadingSpinner /></div>;
 
   return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-cyan-100">
+      <div className="min-h-screen bg-slate-50">
         {/* Top Bar */}
-        <div className="sticky top-0 z-10 h-16 !bg-white shadow-md flex items-center justify-between px-10">
+        <div className="sticky top-0 z-10 h-16 !bg-white shadow-sm border-b border-slate-200 flex items-center justify-between px-10">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-extrabold tracking-wide text-cyan-600">FolioX</h1>
+            <h1 className="text-xl font-bold tracking-wide text-primary-600">FolioX</h1>
           </div>
           <Link to="/ai-assistant">
             <Button color="primary" variant="flat" className="rounded-full">
-              Chat with Bot
+              AI Assistant
             </Button>
           </Link>
         </div>
 
-        <div className="p-10 flex flex-col gap-10">
+        <div className="p-10 flex flex-col gap-10 max-w-[1600px] mx-auto">
           <div>
-            <h2 className="text-5xl font-black text-cyan-600">Hi Sumeet</h2>
-            <p className="text-lg text-zinc-600 mt-2 italic">Welcome back to your dashboard.</p>
+            <h2 className="text-4xl font-bold text-slate-800">Hi Sumeet</h2>
+            <p className="text-slate-500 mt-2">Welcome back to your portfolio dashboard.</p>
           </div>
 
-          {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>}
+          {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">{error}</div>}
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-4 gap-7">
-            <Card className="rounded-2xl shadow-lg bg-amber-50">
-              <CardBody className="p-7">
-                <CardTitle>Total Portfolio Value</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
-                <p className="mt-6 text-3xl font-extrabold text-center">${portfolioValue.toLocaleString()}</p>
+          <div className="grid grid-cols-4 gap-6">
+            <Card className="rounded-xl shadow-sm border border-slate-200 bg-gradient-to-br from-white to-emerald-50 hover:shadow-lg transition-all duration-300">
+              <CardBody className="p-6">
+                <CardTitle>Portfolio Value</CardTitle>
+                <div className="h-1 w-16 rounded-full bg-gradient-to-r from-emerald-500 to-green-500 mt-3 mx-auto" />
+                <p className="mt-5 text-3xl font-bold text-center text-slate-800">${portfolioValue.toLocaleString()}</p>
               </CardBody>
             </Card>
 
-            <Card className="rounded-2xl shadow-lg bg-yellow-100">
-              <CardBody className="p-7">
-                <CardTitle>Diversification Score</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
-                <p className="mt-6 text-3xl font-extrabold text-center">{diversificationScore} / 100</p>
+            <Card className="rounded-xl shadow-sm border border-slate-200 bg-gradient-to-br from-white to-blue-50 hover:shadow-lg transition-all duration-300">
+              <CardBody className="p-6">
+                <CardTitle>Diversification</CardTitle>
+                <div className="h-1 w-16 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 mt-3 mx-auto" />
+                <p className="mt-5 text-3xl font-bold text-center text-slate-800">{diversificationScore} / 100</p>
               </CardBody>
             </Card>
 
             <ImmuneScoreCard />
 
-
-            <Card className="rounded-2xl shadow-lg bg-green-100">
-              <CardBody className="p-7">
+            <Card className="rounded-xl shadow-sm border border-slate-200 bg-gradient-to-br from-white to-amber-50 hover:shadow-lg transition-all duration-300">
+              <CardBody className="p-6">
                 <CardTitle>Available Balance</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
-                <p className="mt-6 text-3xl font-extrabold text-center">${balance.amount.toLocaleString()}</p>
+                <div className="h-1 w-16 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 mt-3 mx-auto" />
+                <p className="mt-5 text-3xl font-bold text-center text-slate-800">${balance.amount.toLocaleString()}</p>
               </CardBody>
             </Card>
           </div>
 
           {/* Charts */}
-          <div className="grid grid-cols-3 gap-7">
-            <Card className="col-span-2 rounded-2xl shadow-lg !bg-white">
-              <CardBody className="p-7">
-                <CardTitle>Portfolio Growth Over 6 Months </CardTitle>
-                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
-                <div className="mt-6 h-[280px]">
+          <div className="grid grid-cols-3 gap-6">
+            <Card className="col-span-2 rounded-xl shadow-sm border border-slate-200 bg-gradient-to-br from-white to-slate-50 hover:shadow-lg transition-all duration-300">
+              <CardBody className="p-6">
+                <CardTitle>Portfolio Growth & Immunity Analysis</CardTitle>
+                <div className="h-1 w-16 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 mt-3 mx-auto" />
+                <div className="mt-5 h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={portfolioData}>
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="value" stroke="#328ec4" strokeWidth={3} />
+                      <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
+                      <YAxis stroke="#64748b" fontSize={12} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '12px',
+                          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                          fontSize: '14px'
+                        }}
+                      />
+                      <Line type="monotone" dataKey="value" stroke="#1e3a8a" strokeWidth={3} dot={false} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
+
+                {/* Immunity Analysis Section */}
+                <div className="mt-8 pt-6 border-t border-slate-200">
+                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-primary-500"></div>
+                    Portfolio Immunity Analysis
+                  </h3>
+
+                  {immunityData ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-100">
+                        <p className="text-sm font-medium text-slate-600 mb-1">Diagnosis</p>
+                        <p className="font-semibold text-slate-800">{immunityData.diagnosis || "Healthy"}</p>
+                      </div>
+
+                      <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg p-4 border border-emerald-100">
+                        <p className="text-sm font-medium text-slate-600 mb-1">Immune Strength</p>
+                        <p className="font-semibold text-slate-800">{immunityData.immune_strength || 0}/100</p>
+                      </div>
+
+                      <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-100">
+                        <p className="text-sm font-medium text-slate-600 mb-1">Systemic Risk</p>
+                        <p className="font-semibold text-slate-800">{immunityData.systemic_risk || "Low"}</p>
+                      </div>
+
+                      {immunityData.weak_points?.length > 0 && (
+                        <div className="md:col-span-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-4 border border-red-100">
+                          <p className="text-sm font-medium text-slate-600 mb-2">Weak Points:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {immunityData.weak_points.map((point, idx) => (
+                              <span key={idx} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                {point}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 rounded-lg p-6 text-center border border-slate-200">
+                      <p className="text-slate-500">Loading immunity analysis...</p>
+                    </div>
+                  )}
+                </div>
               </CardBody>
-              <ImmunityCard />
             </Card>
 
             {/* Pie Charts */}
-            <div className="flex flex-col gap-7">
+            <div className="flex flex-col gap-6">
               {/* By Symbol */}
 
-              <Card className="rounded-2xl shadow-lg !bg-white">
-                <CardBody className="p-7">
+              <Card className="rounded-xl shadow-sm border border-slate-200 bg-white">
+                <CardBody className="p-6">
                   <CardTitle>Asset Allocation</CardTitle>
-                  <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
-                  <div className="mt-6 h-[220px]">
+                  <div className="h-1 w-12 rounded-full bg-primary-500 mt-3 mx-auto" />
+                  <div className="mt-5 h-[200px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie data={allocationData} dataKey="value" outerRadius={95} nameKey="name">
+                        <Pie 
+                          data={allocationData} 
+                          dataKey="value" 
+                          outerRadius={85} 
+                          innerRadius={50}
+                          nameKey="name"
+                          paddingAngle={2}
+                        >
                           {allocationData.map((_, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
                         </Pie>
-                        <Tooltip />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#fff', 
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '8px'
+                          }}
+                        />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
-                  <div className="flex flex-col gap-3 items-center mt-4">
+                  <div className="flex flex-wrap justify-center gap-3 mt-4">
                     {allocationData.map((item, index) => (
-                        <div key={item.name} className="flex items-center gap-3 text-sm text-zinc-700">
-                          <div className="h-3 w-3 rounded-md" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                          <span className="font-semibold">{item.name}</span>
-                          <span className="text-white0">{item.value}%</span>
+                        <div key={item.name} className="flex items-center gap-2 text-sm">
+                          <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                          <span className="font-medium text-slate-600">{item.name}</span>
+                          <span className="text-slate-400">{item.value}%</span>
                         </div>
                     ))}
                   </div>
@@ -349,26 +416,39 @@ export default function Dashboard() {
               </Card>
 
               {/* By Type */}
-              <Card className="rounded-2xl shadow-lg !bg-white">
-                <CardBody className="p-7">
-                  <CardTitle>Allocation by Asset Type</CardTitle>
-                  <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
-                  <div className="mt-6 h-[220px]">
+              <Card className="rounded-xl shadow-sm border border-slate-200 bg-white">
+                <CardBody className="p-6">
+                  <CardTitle>By Asset Type</CardTitle>
+                  <div className="h-1 w-12 rounded-full bg-primary-500 mt-3 mx-auto" />
+                  <div className="mt-5 h-[200px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie data={typeAllocationData} dataKey="value" outerRadius={95} nameKey="name">
+                        <Pie 
+                          data={typeAllocationData} 
+                          dataKey="value" 
+                          outerRadius={85} 
+                          innerRadius={50}
+                          nameKey="name"
+                          paddingAngle={2}
+                        >
                           {typeAllocationData.map((_, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
                         </Pie>
-                        <Tooltip />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#fff', 
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '8px'
+                          }}
+                        />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
-                  <div className="flex flex-col gap-3 items-center mt-4">
+                  <div className="flex flex-wrap justify-center gap-3 mt-4">
                     {typeAllocationData.map((item, index) => (
-                        <div key={item.name} className="flex items-center gap-3 text-sm text-zinc-700">
-                          <div className="h-3 w-3 rounded-md" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                          <span className="font-semibold">{item.name}</span>
-                          <span className="text-white0">{item.value}%</span>
+                        <div key={item.name} className="flex items-center gap-2 text-sm">
+                          <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                          <span className="font-medium text-slate-600">{item.name}</span>
+                          <span className="text-slate-400">{item.value}%</span>
                         </div>
                     ))}
                   </div>
@@ -378,54 +458,51 @@ export default function Dashboard() {
           </div>
 
           {/* Holdings Table */}
-          <Card className="rounded-2xl shadow-lg !bg-white">
-            <CardBody className="p-7">
+          <Card className="rounded-xl shadow-sm border border-slate-200 bg-white">
+            <CardBody className="p-6">
               <div className="mb-6 text-center">
-                <CardTitle className="text-15xl font-extrabold tracking-wide text-slate-300">
-                  Holdings
-                </CardTitle>
-
-                <div className="h-1 w-24 rounded-full bg-cyan-500 mt-4 mx-auto" />
+                <CardTitle>Holdings</CardTitle>
+                <div className="h-1 w-16 rounded-full bg-primary-500 mt-3 mx-auto" />
               </div>
 
-
-
-              <div className="flex justify-end mb-5 gap-2">
+              <div className="flex justify-end mb-5 gap-3">
                 <Button
                   color="primary"
+                  variant="flat"
                   onClick={async () => {
                     try {
                       setLoading(true);
                       const refreshedAssets = await refreshPortfolio();
-                      console.log(refreshedAssets);
                       setPortfolioAssets(refreshedAssets);
                     } catch (err) {
-                      console.log(err);
                       alert("Failed to refresh portfolio");
                     } finally {
                       setLoading(false);
                     }
                   }}
+                  className="font-medium"
                 >
                   Refresh
                 </Button>
 
-                <Button color="secondary" onClick={() => openTradePopup("buy", "")}>Add Asset</Button>
+                <Button color="primary" onClick={() => openTradePopup("buy", "")} className="font-medium">
+                  Add Asset
+                </Button>
               </div>
 
               {portfolioAssets.length === 0 ? (
-                  <div className="text-center py-8 text-white0">No assets in your portfolio yet. Add some assets to get started.</div>
+                  <div className="text-center py-12 text-slate-400">No assets in your portfolio yet.</div>
               ) : (
-                  <Table>
+                  <Table aria-label="Portfolio holdings">
                     <TableHeader>
-                      <TableColumn className="w-24 px-4">Ticker</TableColumn>
-                      <TableColumn className="w-44 px-4">Name</TableColumn>
-                      <TableColumn className="w-20 px-4 text-center">Qty</TableColumn>
-                      <TableColumn className="w-32 px-4">Buy Date</TableColumn>
-                      <TableColumn className="w-32 px-4">Buy Price</TableColumn>
-                      <TableColumn className="w-36 px-4">Current</TableColumn>
-                      <TableColumn className="w-32 px-4">P&L</TableColumn>
-                      <TableColumn className="w-48 px-6 text-right">Actions</TableColumn>
+                      <TableColumn className="w-24">TICKER</TableColumn>
+                      <TableColumn className="w-40">NAME</TableColumn>
+                      <TableColumn className="w-20 text-center">QTY</TableColumn>
+                      <TableColumn className="w-28">BUY DATE</TableColumn>
+                      <TableColumn className="w-28">BUY PRICE</TableColumn>
+                      <TableColumn className="w-28">CURRENT</TableColumn>
+                      <TableColumn className="w-28">P&L</TableColumn>
+                      <TableColumn className="w-40 text-right">ACTIONS</TableColumn>
                     </TableHeader>
 
 
@@ -434,61 +511,84 @@ export default function Dashboard() {
                         const pnl = (asset.currentPrice - asset.buyPrice) * asset.quantity;
                         const pnlPercent = asset.buyPrice > 0 ? ((asset.currentPrice - asset.buyPrice) / asset.buyPrice * 100).toFixed(2) : 0;
                         return (
-                            <TableRow key={asset.symbol} className="h-14">
-                              <TableCell className="px-4 font-semibold align-middle">
+                            <TableRow key={asset.symbol} className="h-12">
+                              <TableCell className="font-semibold text-slate-800">
                                 {asset.symbol}
                               </TableCell>
 
-                              <TableCell className="px-4 font-semibold align-middle">
+                              <TableCell className="text-slate-600">
                                 {asset.name}
                               </TableCell>
 
-                              <TableCell className="px-4 font-semibold text-center align-middle">
+                              <TableCell className="text-center text-slate-600">
                                 {asset.quantity}
                               </TableCell>
 
-                              <TableCell className="px-4 font-semibold align-middle">
+                              <TableCell className="text-slate-600">
                                 {asset.buyTimestamp
                                   ? new Date(asset.buyTimestamp).toLocaleDateString()
                                   : "-"}
                               </TableCell>
 
-                              <TableCell className="px-4 font-semibold align-middle">
+                              <TableCell className="text-slate-600">
                                 ${asset.buyPrice.toLocaleString()}
                               </TableCell>
 
-                              <TableCell className="px-4 font-semibold align-middle">
+                              <TableCell className="text-slate-800 font-medium">
                                 ${asset.currentPrice.toLocaleString()}
                               </TableCell>
 
-                              <TableCell className="px-4 font-semibold align-middle">
-                                <div className="flex flex-col leading-tight">
-                                  <span className={`font-semibold ${pnl >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                              <TableCell className="font-medium">
+                                <div className="flex flex-col">
+                                  <span className={pnl >= 0 ? "text-success-600" : "text-danger-600"}>
                                     {pnl >= 0 ? "+" : ""}${pnl.toLocaleString()}
                                   </span>
-                                  <span className={`text-xs ${pnl >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                                  <span className={`text-xs ${pnl >= 0 ? "text-success-500" : "text-danger-500"}`}>
                                     {pnlPercent}%
                                   </span>
                                 </div>
                               </TableCell>
 
-                              <TableCell className="px-6 font-semibold align-middle text-right">
-                                <div className="flex justify-end gap-3">
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-2">
                                   <Button
-                                    size="sm"
-                                    variant="flat"
-                                    className="rounded-full border-2 border-green-600 text-green-600 font-semibold px-4" onClick={() => handleBuy(asset.symbol)}
-                                  >
-                                    Add
-                                  </Button>
+  size="sm"
+  className="
+    min-w-[70px]
+    font-medium
+    text-emerald-600
+    border
+    border-emerald-600
+    bg-transparent
+    hover:bg-emerald-50
+    hover:text-emerald-700
+    transition-colors
+    rounded-md
+  "
+  onClick={() => handleBuy(asset.symbol)}
+>
+  Add
+</Button>
 
                                   <Button
-                                    size="sm"
-                                    variant="flat"
-                                    className="rounded-full border-2 border-red-600 text-red-600 font-semibold px-4" onClick={() => handleSell(asset.symbol, asset.quantity)}
-                                  >
-                                    Remove
-                                  </Button>
+  size="sm"
+  className="
+    min-w-[70px]
+    font-medium
+    text-rose-600
+    border
+    border-rose-600
+    bg-transparent
+    hover:bg-rose-50
+    hover:text-rose-700
+    transition-colors
+    rounded-md
+  "
+  onClick={() => handleSell(asset.symbol, asset.quantity)}
+>
+  Remove
+</Button>
+
                                 </div>
                               </TableCell>
                             </TableRow>

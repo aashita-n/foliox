@@ -1,9 +1,9 @@
-import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress } from "@mui/material";
 import { useState } from "react";
+import { Button, Input, Card, CardBody } from "@heroui/react";
 
 export default function AiChat() {
   const [messages, setMessages] = useState([
-    { sender: "ai", text: "Hi 👋 I’m your FolioX AI assistant. Ask me anything about your portfolio." }
+    { sender: "ai", text: "Hi 👋 I'm your FolioX AI assistant. Ask me anything about your portfolio." }
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -57,65 +57,87 @@ export default function AiChat() {
   };
 
   return (
-    <Box
-      sx={{
-        backgroundColor: "#E0F7FA", // bg-cyan-50 color
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        p: 3
-      }}
-    >
-      <Box sx={{ width: "100%", maxWidth: 800 }}>
-        <Typography variant="h4" fontWeight="bold" mb={2}>
-          AI Portfolio Assistant
-        </Typography>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* Header */}
+      <div className="sticky top-0 z-10 h-16 !bg-white shadow-sm border-b border-slate-200 flex items-center px-10">
+        <h1 className="text-xl font-bold tracking-wide text-primary-600">FolioX</h1>
+        <span className="mx-3 text-slate-300">|</span>
+        <span className="text-slate-600 font-medium">AI Assistant</span>
+      </div>
 
-        <Card sx={{ borderRadius: 3, mb: 2, height: "60vh", overflowY: "auto" }}>
-          <CardContent>
-            {messages.map((msg, i) => (
-              <Box
-                key={i}
-                sx={{
-                  display: "flex",
-                  justifyContent: msg.sender === "user" ? "flex-end" : "flex-start",
-                  mb: 1
-                }}
-              >
-                <Box
-                  sx={{
-                    backgroundColor: msg.sender === "user" ? "#2563EB" : "#E5E7EB",
-                    color: msg.sender === "user" ? "white" : "black",
-                    p: 1.5,
-                    borderRadius: 2,
-                    maxWidth: "70%",
-                    transition: "all 0.3s ease-in-out",
-                  }}
-                >
-                  {msg.text}
-                </Box>
-              </Box>
-            ))}
-            {isTyping && (
-              <Box sx={{ fontStyle: "italic", color: "gray", textAlign: "center" }}>
-                AI is typing...
-              </Box>
-            )}
-          </CardContent>
+      {/* Chat Container */}
+      <div className="flex-1 max-w-4xl mx-auto w-full p-6 flex flex-col">
+        {/* Welcome Card */}
+        <Card className="mb-6 shadow-sm border border-slate-200">
+          <CardBody className="p-6 text-center">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">AI Portfolio Assistant</h2>
+            <p className="text-slate-500">Ask me about risk analysis, returns, diversification, or portfolio rebalancing.</p>
+          </CardBody>
         </Card>
 
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <TextField
-            fullWidth
-            placeholder="Ask about risk, returns, rebalancing..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-          />
-          <Button variant="contained" onClick={sendMessage}>
-            Send
-          </Button>
-        </Box>
-      </Box>
-    </Box>
+        {/* Messages */}
+        <Card className="flex-1 shadow-sm border border-slate-200 bg-white">
+          <CardBody className="p-6 flex flex-col h-[60vh]">
+            {/* Messages Scroll Area */}
+            <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+              {messages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[75%] px-4 py-3 rounded-2xl ${
+                      msg.sender === "user"
+                        ? "bg-primary-600 text-white rounded-br-md"
+                        : "bg-slate-100 text-slate-800 rounded-bl-md"
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-slate-100 px-4 py-3 rounded-2xl rounded-bl-md">
+                    <span className="flex gap-1">
+                      <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                      <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                      <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Input Area */}
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <div className="flex gap-3">
+                <Input
+                  fullWidth
+                  placeholder="Ask about risk, returns, rebalancing..."
+                  value={input}
+                  onValueChange={setInput}
+                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                  size="lg"
+                  variant="bordered"
+                  classNames={{
+                    inputWrapper: "border-slate-200 hover:border-primary-400 focus-within:border-primary-500",
+                  }}
+                />
+                <Button
+                  color="primary"
+                  size="lg"
+                  onClick={sendMessage}
+                  className="font-medium px-8"
+                >
+                  Send
+                </Button>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      </div>
+    </div>
   );
 }
+

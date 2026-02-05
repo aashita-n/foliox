@@ -99,70 +99,90 @@ const openTradePopup = (tradeType, symbol, maxQuantity = null) => {
 
 
   return (
-    <Card className="rounded-2xl shadow-lg !bg-white">
-      <CardBody className="p-7 flex flex-col gap-5">
+    <Card className="rounded-xl shadow-sm border border-slate-200 bg-white hover:shadow-md transition-shadow">
+      <CardBody className="p-6 flex flex-col gap-5">
         {/* Card Title */}
         <div className="flex justify-between items-center">
             <p className="text-xl font-semibold tracking-widest uppercase text-slate-800">
                 Asset Catalogue
             </p>
 
-            {/* Boxed search input */}
-            <div className="border border-gray-300 rounded-lg px-3 py-1 flex items-center w-64">
-                <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearch}
-                className="outline-none w-full text-sm text-gray-700"
-                />
-            </div>
+            {/* Search input */}
+            <Input
+              type="text"
+              placeholder="Search assets..."
+              value={searchQuery}
+              onValueChange={setSearchQuery}
+              onKeyDown={handleSearch}
+              className="w-64"
+              size="sm"
+              variant="bordered"
+            />
         </div>
 
         {/* Table */}
         <div className="overflow-y-auto max-h-[400px]">
-          <Table>
+          <Table aria-label="Asset catalogue">
             <TableHeader>
-              <TableColumn>Symbol</TableColumn>
-              <TableColumn>Type</TableColumn>
-              <TableColumn>Name</TableColumn>
-              <TableColumn>Current</TableColumn>
-              <TableColumn>High</TableColumn>
-              <TableColumn>Low</TableColumn>
-              <TableColumn>Volume</TableColumn>
-              <TableColumn className="text-right">Actions</TableColumn>
+              <TableColumn className="w-24">SYMBOL</TableColumn>
+              <TableColumn className="w-28">TYPE</TableColumn>
+              <TableColumn className="w-40">NAME</TableColumn>
+              <TableColumn className="w-28">PRICE</TableColumn>
+              <TableColumn className="w-24">HIGH</TableColumn>
+              <TableColumn className="w-24">LOW</TableColumn>
+              <TableColumn className="w-32">VOLUME</TableColumn>
+              <TableColumn className="w-28 text-right">ACTIONS</TableColumn>
             </TableHeader>
 
             <TableBody>
               {filteredAssets.map((asset) => (
                 <TableRow key={asset.symbol}>
-                  <TableCell className="font-semibold">{asset.symbol}</TableCell>
-                  <TableCell className="font-semibold">{asset.type ?? "STOCK"}</TableCell>
-                  <TableCell className="font-semibold">{asset.name}</TableCell>
-                  <TableCell className="font-semibold">${asset.price?.toLocaleString() ?? "-"}</TableCell>
-                  <TableCell className="font-semibold">${asset.high?.toLocaleString() ?? "-"}</TableCell>
-                  <TableCell className="font-semibold">${asset.low?.toLocaleString() ?? "-"}</TableCell>
-                  <TableCell className="font-semibold">{asset.volume?.toLocaleString() ?? "-"}</TableCell>
+                  <TableCell className="font-semibold text-slate-800">{asset.symbol}</TableCell>
+                  <TableCell className="text-slate-600">{asset.type ?? "STOCK"}</TableCell>
+                  <TableCell className="text-slate-600">{asset.name}</TableCell>
+                  <TableCell className="font-medium text-slate-800">${asset.price?.toLocaleString() ?? "-"}</TableCell>
+                  <TableCell className="text-slate-600">${asset.high?.toLocaleString() ?? "-"}</TableCell>
+                  <TableCell className="text-slate-600">${asset.low?.toLocaleString() ?? "-"}</TableCell>
+                  <TableCell className="text-slate-600">{asset.volume?.toLocaleString() ?? "-"}</TableCell>
                   <TableCell className="text-right flex justify-end gap-2">
                     <Button
-                    size="sm"
-                    variant="flat"
-                    className="rounded-full border-2 border-green-600 text-green-600 font-bold px-4"
-                    onClick={() => handleBuy(asset.symbol)}
-                    >
-                    Buy
-                    </Button>
+  size="sm"
+  className="
+    font-medium
+    text-emerald-600
+    border
+    border-emerald-600
+    bg-transparent
+    hover:bg-emerald-50
+    hover:text-emerald-700
+    transition-colors
+    rounded-md
+  "
+  onClick={() => handleBuy(asset.symbol)}
+>
+  Buy
+</Button>
+
 
 
                     <Button
-                      size="sm"
-                      variant="flat"
-                      className="rounded-full border-2 border-cyan-600 text-cyan-600 font-semibold px-4"
-                      onClick={() => handleRefresh(asset.symbol)}
-                    >
-                      Refresh
-                    </Button>
+  size="sm"
+  className="
+    font-medium
+    text-blue-700
+    border
+    border-blue-700
+    bg-transparent
+    hover:bg-blue-50
+    hover:text-blue-800
+    transition-colors
+    rounded-md
+  "
+  onClick={() => handleRefresh(asset.symbol)}
+>
+  Refresh
+</Button>
+
                   </TableCell>
                 </TableRow>
               ))}

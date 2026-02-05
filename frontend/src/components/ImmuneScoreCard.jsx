@@ -38,16 +38,16 @@ const ImmuneScoreCard = () => {
   }, []);
 
   return (
-    <Card className="rounded-2xl shadow-lg bg-lime-100">
-      <CardBody className="p-7">
+    <Card className="rounded-xl shadow-sm border border-slate-200 bg-gradient-to-br from-white to-purple-50 hover:shadow-lg transition-all duration-300">
+      <CardBody className="p-6">
         <CardTitle>Immune Score</CardTitle>
-        <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
+        <div className="h-1 w-16 rounded-full bg-gradient-to-r from-purple-500 to-violet-500 mt-3 mx-auto" />
         {loading ? (
-          <p className="mt-6 text-center text-gray-500">Loading...</p>
+          <p className="mt-5 text-center text-slate-400">Loading...</p>
         ) : error ? (
-          <p className="mt-6 text-center text-red-600">{error}</p>
+          <p className="mt-5 text-center text-danger-600">{error}</p>
         ) : (
-          <p className="mt-6 text-3xl font-extrabold text-center">
+          <p className="mt-5 text-3xl font-bold text-center text-slate-800">
             {score != null ? Math.round(score * 100) : "0"} / 100
           </p>
         )}
