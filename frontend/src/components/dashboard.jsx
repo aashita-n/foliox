@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AssetCatalogueCard from "./AssetCatalogueCard ";
+import ImmunityCard from "./ImmunityCard";
+import ImmuneScoreCard from "./ImmuneScoreCard";
+
+
 import {
   Card,
   CardBody,
@@ -282,13 +286,8 @@ export default function Dashboard() {
               </CardBody>
             </Card>
 
-            <Card className="rounded-2xl shadow-lg bg-lime-100">
-              <CardBody className="p-7">
-                <CardTitle>Immune Score</CardTitle>
-                <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
-                <p className="mt-6 text-3xl font-extrabold text-center">85 / 100</p>
-              </CardBody>
-            </Card>
+            <ImmuneScoreCard />
+
 
             <Card className="rounded-2xl shadow-lg bg-green-100">
               <CardBody className="p-7">
@@ -316,11 +315,13 @@ export default function Dashboard() {
                   </ResponsiveContainer>
                 </div>
               </CardBody>
+              <ImmunityCard />
             </Card>
 
             {/* Pie Charts */}
             <div className="flex flex-col gap-7">
               {/* By Symbol */}
+
               <Card className="rounded-2xl shadow-lg !bg-white">
                 <CardBody className="p-7">
                   <CardTitle>Asset Allocation</CardTitle>

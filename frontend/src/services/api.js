@@ -121,3 +121,9 @@ export const refreshPortfolio = async () => {
   return response.json();
 };
 
+export const getImmunityAnalysis = async () => {
+  const res = await fetch("/api/immune/analyze");
+  if (!res.ok) throw new Error("Failed to fetch immunity");
+  return res.json();
+};
+
