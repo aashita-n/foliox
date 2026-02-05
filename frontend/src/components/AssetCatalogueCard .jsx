@@ -102,13 +102,13 @@ const openTradePopup = (tradeType, symbol, maxQuantity = null) => {
     <Card className="rounded-2xl shadow-lg !bg-white">
       <CardBody className="p-7 flex flex-col gap-5">
         {/* Card Title */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <p className="text-xl font-semibold tracking-widest uppercase text-slate-800">
                 Asset Catalogue
             </p>
 
             {/* Boxed search input */}
-            <div className="border border-gray-300 rounded-lg px-3 py-1 flex items-center w-64">
+            <div className="border border-gray-300 rounded-lg px-3 py-1 flex items-center w-full sm:w-64">
                 <input
                 type="text"
                 placeholder="Search..."

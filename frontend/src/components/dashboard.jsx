@@ -245,7 +245,7 @@ export default function Dashboard() {
   return (
       <div className="min-h-screen bg-gradient-to-b from-white to-cyan-100">
         {/* Top Bar */}
-        <div className="sticky top-0 z-10 h-16 !bg-white shadow-md flex items-center justify-between px-10">
+        <div className="sticky top-0 z-10 h-16 !bg-white shadow-md flex items-center justify-between px-4 sm:px-6 lg:px-10">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-extrabold tracking-wide text-cyan-600">FolioX</h1>
           </div>
@@ -256,16 +256,16 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        <div className="p-10 flex flex-col gap-10">
+        <div className="p-4 sm:p-6 lg:p-10 flex flex-col gap-10">
           <div>
-            <h2 className="text-5xl font-black text-cyan-600">Hi Sumeet</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-black text-cyan-600">Hi Sumeet</h2>
             <p className="text-lg text-zinc-600 mt-2 italic">Welcome back to your dashboard.</p>
           </div>
 
           {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>}
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-4 gap-7">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-7">
             <Card className="rounded-2xl shadow-lg bg-amber-50">
               <CardBody className="p-7">
                 <CardTitle>Total Portfolio Value</CardTitle>
@@ -300,8 +300,8 @@ export default function Dashboard() {
           </div>
 
           {/* Charts */}
-          <div className="grid grid-cols-3 gap-7">
-            <Card className="col-span-2 rounded-2xl shadow-lg !bg-white">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-7">
+            <Card className="lg:col-span-2 rounded-2xl shadow-lg !bg-white">
               <CardBody className="p-7">
                 <CardTitle>Portfolio Growth Over 6 Months </CardTitle>
                 <div className="h-1 w-10 rounded-full bg-cyan-500 mt-2 mx-auto" />
