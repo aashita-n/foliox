@@ -52,5 +52,14 @@ public class AssetHistoryService {
     public List<AssetHistoryEntity> getHistoryBySymbol(String symbol) {
         return historyRepo.findBySymbolOrderByDateAsc(symbol);
     }
+
+    public void ensureHistoryExists(String symbol) {
+        boolean exists = historyRepo.existsBySymbol(symbol);
+
+        if (!exists) {
+            fetchAndSave(symbol);
+        }
+    }
+
 }
 

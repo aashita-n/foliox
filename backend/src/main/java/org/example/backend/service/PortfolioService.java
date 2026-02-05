@@ -18,14 +18,16 @@ public class PortfolioService {
 
     private final PortfolioAssetRepository portfolioRepo;
     private final AssetCatalogueRepository assetCatalogueRepo;
+    private final AssetHistoryService assetHistoryService;
     private final BalanceService balanceService;
     private final AssetCatalogueService assetCatalogueService;
 
     public PortfolioService(PortfolioAssetRepository portfolioRepo,
-                            AssetCatalogueRepository assetCatalogueRepo,
+                            AssetCatalogueRepository assetCatalogueRepo, AssetHistoryService assetHistoryService,
                             BalanceService balanceService, AssetCatalogueService assetCatalogueService) {
         this.portfolioRepo = portfolioRepo;
         this.assetCatalogueRepo = assetCatalogueRepo;
+        this.assetHistoryService = assetHistoryService;
         this.balanceService = balanceService;
         this.assetCatalogueService = assetCatalogueService;
     }
@@ -76,6 +78,8 @@ public class PortfolioService {
 
     @Transactional
     public void buyAsset(String symbol, int quantity) {
+
+        assetHistoryService.ensureHistoryExists(symbol);
 
         // 1. Get asset from catalogue
         AssetCatalogueEntity catalogue = assetCatalogueRepo
